@@ -1,0 +1,18 @@
+{% extends "@Error/full-page-error-skeleton.twig" %}
+
+{% block head %}
+    {{ parent() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock head %}
+
+{% block content %}
+	<div class="jumbotron" style="text-align: center;">
+		<h1>{{ sErrorHeading }}!</h1>
+		<p class="lead">{{ sErrorDescription }}</p>
+		<p>
+		  <a class="btn navbar-btn btn-xs btn-primary" href="/">Back to frontpage</a>
+		</p>
+	</div>
+{% endblock content %}

@@ -1,0 +1,15 @@
+        <footer role="contentinfo">
+            <div class="clearfix">
+                <ul class="list-unstyled list-inline footer-list footer-list-left">
+                    <li>Powered by Ruby v{GLOBAL_RUBY_VERSION} &copy; Aleksander Lanes, 2014</li>
+                    <li>Avant v1.3</li>
+                </ul>
+                <button class="pull-right btn btn-inverse-alt btn-xs hidden-print" id="back-to-top"><i class="fa fa-arrow-up"></i></button>
+                <ul class="list-unstyled list-inline footer-list footer-list-right">
+                	<li><em>{MEMORY_USAGE} ({MEMORY_USAGE_PERCENT} %)</em></li>
+                	<li><em><!-- PHP -->echo round((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'])*1000, 0), ' ms ';<!-- ENDPHP --></em></li>
+                	<li><em><!-- PHP -->global $iQueries; echo $iQueries, ' queries';<!-- ENDPHP --></em></li>
+                	<li><em>Connected to {GLOBAL_HOST_NAME} from {VISITOR_REMOTE_ADDR}</em></li>
+                </ul>
+            </div>
+        </footer>
