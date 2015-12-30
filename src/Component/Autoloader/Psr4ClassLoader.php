@@ -30,6 +30,14 @@ class Psr4ClassLoader
 	protected $base_dir;
 
 	/**
+	 * Cache of strings attempted to load. This is used 
+	 * to not load a file several times
+	 * 
+	 * @var array
+	 */
+	protected $loadedPaths = array();
+
+	/**
 	 * Register loader with SPL autoloader stack
 	 * 
 	 * @return void
@@ -105,7 +113,7 @@ class Psr4ClassLoader
 	 */
 	public function setDefaultDirectory($sDefaultDir)
 	{
-	    $this->sDefaultDirPath = $this->normalizeDirectoryPath($sDefaultDir);
+	    $this->sDefaultDirPath = $this->normalizeDirectoryPath($this->base_dir . $sDefaultDir);
 	}
 	
 	public function setGlobalBaseDirectory($base_dir)
@@ -173,11 +181,20 @@ class Psr4ClassLoader
 			// replace the namespace prefix with the base directory,
 			// replace namespace separators with directory separators
 			// in the relative class name, append with .php
-			$file = $namespaceDirectory
-				 	. str_replace((DIRECTORY_SEPARATOR == '/' ? '\\' : '/'), DIRECTORY_SEPARATOR, $relative_class)
+			$file = rtrim($this->normalizeDirectoryPath($namespaceDirectory
+				 	. $relative_class), DIRECTORY_SEPARATOR)
 				  	. '.php';
+
+			// Make sure we have not already tried this path
+			if(!in_array($file, $this->loadedPaths)) {
+				$this->loadedPaths[] = $file;
+			}
+			
 			// if the mapped file exists, require it
 			if ($this->requireFile($file)) {
+				// reset the loaded file array
+				$this->loadedPaths = array();
+
 				// yes, we're done
 				return $file;
 			}
