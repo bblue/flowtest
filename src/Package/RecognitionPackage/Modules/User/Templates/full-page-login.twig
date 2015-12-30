@@ -1,0 +1,50 @@
+{% extends "@User/full-page-skeleton.twig" %}
+
+{% block content %}
+
+<div class="panel panel-primary">
+	<form action="/users/login" id="login-form" class="form-horizontal" method="post">
+		<div class="panel-body">
+			<h4 class="text-center" style="margin-bottom: 25px;">Log in to get started or <a href="/users/register">Sign Up</a></h4>
+			{% if request.getTargetUrl() %}<input type="hidden" value="{{ request.getTargetUrl() }}" name="target_url" />{% endif %}
+			<div class="form-group has-error">
+			 <div class="col-sm-12">
+			     {% for error in loginForm.aFormErrors %}
+			         <span class="help-block">{{ error }}</span>
+			     {% endfor %}
+			     {% if loginForm.getRemainingLoginAttempts() != loginForm.getMaxAllowedLoginAttempts() %}<span class="help-block">{{ "You have {0} remaining login attempts"|interpolate(loginForm.getRemainingLoginAttempts()) }}</span>
+			     {% endif %}
+			 </div>
+			</div>
+			<div class="form-group {% if loginForm.getElement('username').hasError() %}has-error{% endif %}">
+				<div class="col-sm-12">
+					<div class="input-group">
+						<span class="input-group-addon"><i class="fa fa-user"></i></span>
+						<input type="text" class="form-control" name="{{ loginForm.getElement('username').getName() }}" id="username" placeholder="E-mail" data-rule-email="true" {% if loginForm.getElement('username').getAttribute('disabled') %}disabled{% endif %} {% if loginForm.getElement('username').getAttribute('required') %}required{% endif %} value="{{ loginForm.getElement('username').getValue() }}"/>
+					</div>
+					<span for="username" class="help-block">{{ loginForm.getElement('username').getErrors()|toString }}</span> 
+				</div>
+			</div>
+			<div class="form-group {% if loginForm.getElement('password').hasError() %}has-error{% endif %}">
+				<div class="col-sm-12">
+					<div class="input-group">
+						<span class="input-group-addon"><i class="fa fa-lock"></i></span>
+						<input type="password" class="form-control" name="{{ loginForm.getElement('password').getName() }}" id="password" placeholder="Password" {% if loginForm.getElement('password').getAttribute('disabled') %}disabled{% endif %} {% if loginForm.getElement('password').getAttribute('required') %}required{% endif %} />
+					</div>
+					<span for="username" class="help-block">{{ loginForm.getElement('password').getErrors()|toString }}</span> 
+				</div>
+			</div>
+			<div class="clearfix">
+				<div class="pull-right"><input type="checkbox" style="margin-bottom: 20px" disabled name="rememberMe" id="rememberMe"><label class="text-muted" for="rememberMe"> Remember Me</label></div>
+			</div>
+		</div>
+		<div class="panel-footer">
+			<a href="/users/passwordresetrequest" class="pull-left btn btn-link" style="padding-left:0">Forgot password?</a>
+			<div class="pull-right">
+				<button class="btn btn-default" type="reset" value="Reset" form="login-form" >Reset</button>
+				<button class="btn btn-primary" type="submit" name="loginform" value="Sign In" {% if loginForm.isDisabled() %}disabled{% endif %} >Sign In</button>
+			</div>
+		</div>
+	</form>
+</div><!-- /.panel -->
+{% endblock content %}
