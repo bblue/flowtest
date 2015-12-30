@@ -14,12 +14,12 @@ final class Twig extends AbstractPackage
 	        return false;
 	    }
 	    
-		require BASE_PATH . '/lib/Twig/Autoloader.php';
+		require realpath(VENDOR_PATH) . '/Twig/Autoloader.php';
 		\Twig_Autoloader::register();
 		
 		$loader = new \Twig_Loader_Chain();
 		$twig = new \Twig_Environment($loader, array(
-				'cache'	=> (realpath(BASE_PATH . '/..') . '/cache/twig_compilation_cache'),
+				'cache'	=> realpath(VENDOR_PATH) . '/cache/twig_compilation_cache',
 				'debug' => $this->config->bDebug 
 		));
 		

@@ -94,7 +94,7 @@ final class Doctrine extends AbstractPackage
 	       $this->eventDispatcher->dispatch(DoctrineEvent::FLUSHED); 
 	    });
 	    
-	    $sProxyCachePath = (realpath(BASE_PATH . '/..') . '/cache/doctrine_proxy_cache'); /** @var Psr4ClassLoader $loader */
+	    $sProxyCachePath = '../cache/doctrine_proxy_cache'; /** @var Psr4ClassLoader $loader */
 	    $loader = $this->container->get('classLoader');
 	    $loader->addNamespace('Proxies', $sProxyCachePath);
 	    $config->setProxyNamespace('Proxies');
