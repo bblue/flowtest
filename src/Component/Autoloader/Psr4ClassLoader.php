@@ -2,6 +2,9 @@
 
 namespace bblue\ruby\Component\Autoloader;
 
+/** 
+ * Modified example from https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader-examples.md
+ */
 class Psr4ClassLoader
 {
 	/**
@@ -19,6 +22,13 @@ class Psr4ClassLoader
 	 */
 	protected $sDefaultDirPath;
 	
+	/**
+	 * Global base directory 
+	 * 
+	 * @var string
+	 */
+	protected $base_dir;
+
 	/**
 	 * Register loader with SPL autoloader stack
 	 * 
@@ -39,11 +49,11 @@ class Psr4ClassLoader
 	 */
 	public function addNamespace($sPrefix, $sBaseDir, $bPrepend = false)
 	{
-		// normalize namespace prefix
-		$sPrefix = trim($sPrefix, '\\') . '\\';
-		
+		// normalize namespace prefix and suffix
+		$sPrefix = $this->normalizeNamespace($sPrefix);
+
 		// normalize the base directory
-		$sBaseDir = $this->normalizeDirectoryPath($sBaseDir);
+		$sBaseDir = $this->normalizeDirectoryPath($this->base_dir . $sBaseDir);
 
 		// initialize the namespace prefix array
 		if (isset($this->aPrefixes[$sPrefix]) === false) {
@@ -66,13 +76,28 @@ class Psr4ClassLoader
 	 */
 	public function normalizeDirectoryPath($sDirPath)
 	{
-	    // normalize the base directory with a trailing separator
-	    $sDirPath = str_replace((DIRECTORY_SEPARATOR == '/' ? '\\' : '/'), DIRECTORY_SEPARATOR, $sDirPath);
-	    $sDirPath = rtrim($sDirPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-	     
-	    return $sDirPath;
+		// convert to correct slashes
+		$sDirPath = str_replace((DIRECTORY_SEPARATOR == '/') ? '\\' : '/', DIRECTORY_SEPARATOR, $sDirPath);
+		
+		// remove extra slashes
+		$sDirPath = preg_replace("/[\/]+|[\\\\]+/",DIRECTORY_SEPARATOR,$sDirPath);
+		
+		// add a trailing slash and return
+	    return trim($sDirPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 	}
 	
+	public function normalizeNamespace($namespace)
+	{
+		// convert to correct slashes
+		$namespace = str_replace('/', '\\', $namespace);
+		
+		// remove extra slashes
+		$namespace = preg_replace("/[\\\\]+/",'\\',$namespace);
+		
+		// add a trailing slash and return
+	    return trim($namespace, '\\') . '\\';
+	}
+
 	/**
 	 * Define a default location when a specific namespace has not been set
 	 * 
@@ -83,6 +108,11 @@ class Psr4ClassLoader
 	    $this->sDefaultDirPath = $this->normalizeDirectoryPath($sDefaultDir);
 	}
 	
+	public function setGlobalBaseDirectory($base_dir)
+	{
+		$this->base_dir = $this->normalizeDirectoryPath($base_dir);
+	}
+
 	/**
 	 * Loads the class file for a given class name.
 	 * 
@@ -131,21 +161,21 @@ class Psr4ClassLoader
 	{
 		// are there any base directories for this namespace prefix?
 		if (isset($this->aPrefixes[$prefix]) === true) {
-		    $aBaseDirectories = $this->aPrefixes[$prefix];
-		} elseif (isset($this->sDefaultDirPath) === true) { // Try to find file via default directory
-			$aBaseDirectories = array($this->sDefaultDirPath . DIRECTORY_SEPARATOR . $prefix);
+		    $namespaceDirectories = $this->aPrefixes[$prefix];
+		} elseif (isset($this->sDefaultDirPath) === true) {
+			// Try to find file via default directory
+			$namespaceDirectories = array($this->sDefaultDirPath . DIRECTORY_SEPARATOR . $prefix);
 		}
 
 		// look through base directories for this namespace prefix
-		foreach ($aBaseDirectories as $base_dir) {
+		foreach ($namespaceDirectories as $namespaceDirectory) {
 
 			// replace the namespace prefix with the base directory,
 			// replace namespace separators with directory separators
 			// in the relative class name, append with .php
-			$file = $base_dir
-				  . str_replace('\\', '/', $relative_class)
-				  . '.php';
-
+			$file = $namespaceDirectory
+				 	. str_replace((DIRECTORY_SEPARATOR == '/' ? '\\' : '/'), DIRECTORY_SEPARATOR, $relative_class)
+				  	. '.php';
 			// if the mapped file exists, require it
 			if ($this->requireFile($file)) {
 				// yes, we're done
