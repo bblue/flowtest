@@ -64,7 +64,7 @@ class Psr3LoggerHandler implements LoggerInterface
     {
     	$adapter->debug('Loading log cache into adapter');
     	foreach($this->aLogCache as $aLogEntry) {
-    		$adapter->$aLogEntry['logLevel']('[cache] '.$aLogEntry['message'], $aLogEntry['context']);
+    		$adapter->{$aLogEntry['logLevel']}('[cache] '.$aLogEntry['message'], $aLogEntry['context']);
     	}
     }
     

@@ -5,7 +5,6 @@ namespace bblue\ruby\Component\Core;
 use bblue\ruby\Component\Logger\Psr3LoggerHandler;
 use bblue\ruby\Component\Logger\LoggerAwareTrait;
 use Psr\Log\LoggerAwareInterface;
-use bblue\ruby\Caller\Caller;
 
 class SessionHandler implements LoggerAwareInterface
 {
@@ -88,8 +87,7 @@ class SessionHandler implements LoggerAwareInterface
         }
         
         // Trace who requested the session variable
-        $caller = new Caller();
-        $this->logger->info('Query session for ('. $var .') by  ' . $caller->getMethodAsString());
+        $this->logger->info('Query session for ('. $var .')');
 
         return $this->getSessionVar($var);
     }

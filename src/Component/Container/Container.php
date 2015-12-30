@@ -10,7 +10,6 @@ use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
 use bblue\ruby\Component\Logger\LoggerAwareTrait;
 use bblue\ruby\Component\Config\ConfigAwareTrait;
 use Psr\Log\LoggerInterface;
-use bblue\ruby\Caller\Caller;
 
 /**
  * 
@@ -356,14 +355,10 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
         
         $this->_currentDefinition->sIncludePath = $sIncludePath;
         
-        $caller = new Caller();
-        $this->_currentDefinition->definedBy($this->getAsReference($caller->class));
-        
         $this->_aClassAliasNames[$alias] = $sFullClassName;
         $this->_aDefinitions[$sFullClassName] = $this->_currentDefinition;
         
         $this->logger->debug($alias.' defined in container');
-        $this->logger->debug('Definition details:', (array)$caller);
         
         return $this;
     }
