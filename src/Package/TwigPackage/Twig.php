@@ -19,7 +19,7 @@ final class Twig extends AbstractPackage
 		
 		$loader = new \Twig_Loader_Chain();
 		$twig = new \Twig_Environment($loader, array(
-				'cache'	=> realpath(VENDOR_PATH) . '/cache/twig_compilation_cache',
+				'cache'	=> realpath(CACHE_PATH) . '/twig_compilation_cache',
 				'debug' => $this->config->bDebug 
 		));
 		
