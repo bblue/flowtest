@@ -21,9 +21,7 @@ final class HelloWorld extends AbstractPackage
         $this->wireEventListeners(); 
         $this->registerModules();
         
-        $entityManager = $this->container->get('entityManager');
-        $entityManager->getConfiguration()->getMetadataDriverImpl()->addPaths([__DIR__ . '\Entities']);
-        $this->container->get('classLoader')->addNamespace('bblue\ruby\Entities', __DIR__ . '\Entities');
+        return true;
     }
 
     private function wireEventListeners()

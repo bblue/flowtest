@@ -19,6 +19,7 @@ final class Logger extends AbstractPackage
     		$logger = $this->getLoggerClass('FileLogger');
     		$this->logger->registerAdapter($logger);
     	}
+        return true;
     }
     /**
     * @todo Dette må ikke hardkodes på denne måten. Jeg må revurdere hvordan disse kalles

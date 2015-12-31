@@ -79,6 +79,7 @@ final class Recognition extends AbstractPackage
     	    $login = new AnonomyousLogin($this->container->get('services.login'), $this->container->get('userService'));
     	    $login->handle($event->auth);
     	});
+        return true;
     }
     
     private function registerModules()

@@ -62,6 +62,7 @@ final class Doctrine extends AbstractPackage
                 $this->entityManager->clear();   
             }
         });
+        return true;
 	}
 	
 	/**

@@ -94,17 +94,12 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
         if(array_key_exists($id, $this->_aClasses)) {
             $return = $this->_aClasses[$id];
         } elseif (array_key_exists($id, $this->_aDefinitions)) {
-        	$this->_aClasses[$id] = $this->createFromDefinition($this->_aDefinitions[$id]);
-        	$return = $this->_aClasses[$id];
-        	// Remove the element from the definition array now that it has been loaded
-        	// @todo denne må flyttes til en egen method + den må gjøres smartere ved noe ala "loadedDefinitions" eller [loaded] = true
-            unset($this->_aDefinitions[$id]);
+        	$return = $this->createFromDefinition($this->_aDefinitions[$id]);
         }
 
         if($required && !is_object($return)) {
             throw new \Exception('The container was unable to retrive an object instance for the reference ' . $id);
         } else {
-            $this->logger->debug('Container returning ' . $id);
             return $return;
         }
     }
@@ -305,6 +300,10 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
 		
 		if($instance) {
 		    $this->logger->debug('Definition ('. $reflection->getName() . ') converted to class instance');
+
+            $this->_aClasses[$definition->getFullClassName()] = $instance;
+            // Remove the element from the definition array now that it has been loaded
+            unset($this->_aDefinitions[$definition->getFullClassName()]);
 		}
 		
 		$aMethodCalls = $definition->getMethodCalls();
@@ -322,8 +321,14 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
                     $parameter = $this->get($parameter->getName());
                 }
             }
-            $this->logger->debug('Triggering methods on definition object ('.get_class($instance)."->{$aMethodData['sMethod']}()");
-            call_user_func_array(array($instance, $aMethodData['sMethod']), $aMethodData['aParameters']);
+            //@todo denne må fikses $this->logger->debug('Triggering methods on definition object ('.get_class($instance)."->{$aMethodData['sMethod']}()");
+            if(is_string($aMethodData['sMethod'])) {
+                call_user_func_array(array($instance, $aMethodData['sMethod']), $aMethodData['aParameters']);
+            } elseif (is_callable($aMethodData['sMethod'])) {
+                call_user_func_array($aMethodData['sMethod'], $aMethodData['aParameters']);
+            } else {
+                throw new \Exception('Invalid method callback on class definition');
+            }
         }
         
         $aParameters = $definition->getParameters();

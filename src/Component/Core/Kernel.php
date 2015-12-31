@@ -15,6 +15,7 @@ use bblue\ruby\Component\Autoloader\Psr4ClassLoader;
 use bblue\ruby\Component\Flasher\SessionFlasherStorage;
 use bblue\ruby\Component\Flasher\Flasher;
 use bblue\ruby\Component\Container\Reference;
+use bblue\ruby\Component\Package\AbstractPackage;
 
 abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, EventDispatcherAwareInterface, ConfigAwareInterface, KernelEvent
 {
@@ -141,25 +142,40 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
 	    // Register packages in container and obtain a reference to each
 	    $packages = $this->registerPackages();
 	    foreach($packages as $alias => &$packageBootFile) {
-	        $packageBootFile = $this->container->register('package.'.$alias, $packageBootFile)->getAsReference();
+	    	$packageAlias = 'package.'.$alias;
+	        $packageBootFile = $this->container->register($packageAlias, $packageBootFile)->getAsReference();
+	        $this->container->addMethodCall([$this, 'bootPackage'], [$packageBootFile]);
 	    }
-	    
+
 	    // Load the boot file of each package
 	    foreach($packages as $packageReference) {
-            $package = $this->container->get($packageReference);
-            $this->logger->debug('Booting ' . $packageReference->getName());
-	    	try {
-	         	$package->boot();
-	        } catch (Exception $e) {
-	            $this->logger->critical('Boot failure in ' . $packageReference->getName() . ' package', ['exception'=>$e]);
-	        }
-
-	        $this->logger->debug($packageReference->getName() . ' booted');
-            $this->container->injectDependencies($package);
-            continue;
+	    	if($packageReference instanceof Reference) {
+	    		$this->bootPackage($packageReference);
+	    	}
         }
+
 	}
 	
+	public function bootPackage($package)
+	{
+        if($package instanceof Reference) {
+        	$package = $this->container->get($package);
+        }
+        if(!$package->isBooted()) {
+	        $this->logger->debug('Booting ' . $package->getName());
+	    	try {
+	    		$this->container->injectDependencies($package);
+	         	if(!$package->bootPackage()) {
+	         		throw new \Exception('Package->boot() returned false ('.$package->getName().')');
+	         	}
+	        } catch (\Exception $e) {
+	            $this->logger->critical('Boot failure in ' . $package->getName() . ' package', ['exception'=>$e]);
+	        }
+
+	        $this->logger->debug($package->getName() . ' booted');
+        }
+	}
+
 	/**
 	 * Confirms system can handle the application
 	 * 

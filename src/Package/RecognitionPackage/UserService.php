@@ -3,11 +3,11 @@
 namespace bblue\ruby\Package\RecognitionPackage;
 
 use Doctrine\ORM\EntityManager;
-use bblue\ruby\Entities\User;
 use bblue\ruby\Component\EventDispatcher\EventDispatcher;
 use bblue\ruby\Package\DatabasePackage\DoctrineEvent;
 use bblue\ruby\Component\Core\iUserProvider;
 use bblue\ruby\Entities\Guest;
+use bblue\ruby\Entities\User;
 
 final class UserService implements iUserProvider
 {
@@ -59,7 +59,7 @@ final class UserService implements iUserProvider
     
     public function createGuest()
     {
-        return new \bblue\ruby\Entities\Guest();
+        return new Guest();
     }
     
     public function assertUsernameIsAvailable($username)

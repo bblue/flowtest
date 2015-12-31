@@ -25,10 +25,19 @@ abstract class AbstractPackage implements LoggerAwareInterface, ConfigAwareInter
     use ConfigAwareTrait;
     use EventDispatcherAwareTrait;
      
-    public function __construct(LoggerInterface $logger) {
-        $this->setLogger($logger);
-    }
+    /**
+     * Variable to define whether or not hte package has booted
+     * @var boolean
+     */
+    private $booted = false;
     
+    public function bootPackage()
+    {
+        if($this->boot()) {
+            return $this->isBooted(true);
+        }
+    }
+
     /**
      * Obtain the name of the package. Defaults to class name including namespace.
      * 
@@ -51,4 +60,12 @@ abstract class AbstractPackage implements LoggerAwareInterface, ConfigAwareInter
     }
     
     abstract public function boot();
+
+    public function isBooted($booted = null)
+    {
+        if($booted) {
+            $this->booted = (bool) $booted;
+        }
+        return $this->booted;
+    }
 }

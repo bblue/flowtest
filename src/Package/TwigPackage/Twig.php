@@ -34,5 +34,7 @@ final class Twig extends AbstractPackage
 		*/
 		
 		$this->container->set($twig, 'twig');
+
+		return true;
 	}
 }

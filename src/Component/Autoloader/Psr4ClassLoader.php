@@ -21,13 +21,6 @@ class Psr4ClassLoader
 	 * @var string
 	 */
 	protected $sDefaultDirPath;
-	
-	/**
-	 * Global base directory 
-	 * 
-	 * @var string
-	 */
-	protected $base_dir;
 
 	/**
 	 * Cache of strings attempted to load. This is used 
@@ -61,7 +54,7 @@ class Psr4ClassLoader
 		$sPrefix = $this->normalizeNamespace($sPrefix);
 
 		// normalize the base directory
-		$sBaseDir = $this->normalizeDirectoryPath($this->base_dir . $sBaseDir);
+		$sBaseDir = $this->normalizeDirectoryPath($sBaseDir);
 
 		// initialize the namespace prefix array
 		if (isset($this->aPrefixes[$sPrefix]) === false) {
@@ -113,14 +106,9 @@ class Psr4ClassLoader
 	 */
 	public function setDefaultDirectory($sDefaultDir)
 	{
-	    $this->sDefaultDirPath = $this->normalizeDirectoryPath($this->base_dir . $sDefaultDir);
+	    $this->sDefaultDirPath = $this->normalizeDirectoryPath($sDefaultDir);
 	}
 	
-	public function setGlobalBaseDirectory($base_dir)
-	{
-		$this->base_dir = $this->normalizeDirectoryPath($base_dir);
-	}
-
 	/**
 	 * Loads the class file for a given class name.
 	 * 

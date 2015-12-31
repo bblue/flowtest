@@ -20,6 +20,7 @@ final class MailerPackage extends AbstractPackage
             ->addClassParameter('FromName', $this->config->MAIL_FROM_NAME)
             ->addClassParameter('Host', $this->config->MAIL_SERVER_ADDR)
             ->addClassParameter('Port', $this->config->MAIL_SERVER_PORT);
+        return true;
     }
     
     public function sendTestMail()

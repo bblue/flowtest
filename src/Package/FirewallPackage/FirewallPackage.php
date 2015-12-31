@@ -8,6 +8,7 @@ use bblue\ruby\Component\Router\Router;
 use bblue\ruby\Component\Router\RouterEvent;
 use bblue\ruby\Component\Router\Route;
 use bblue\ruby\Entities\User;
+use bblue\ruby\Package\HelloWorldPackage\HelloWorld;
 
 /**
  * @todo En brannmur blokkerer, den router ikke. Disse route elemenene slik som guest login hører vel derfor ikke egentlig hjemme i en brannmur, men i recognition service
@@ -15,9 +16,11 @@ use bblue\ruby\Entities\User;
  */
 final class FirewallPackage extends AbstractPackage
 {
+
 	public function boot()
 	{
 	    $this->interceptAnonomyousUser();
+	    return true;
 	}
 	
 	/**
