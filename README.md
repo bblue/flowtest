@@ -1,6 +1,7 @@
 # Ruby CMS
 
 [![Build Status](https://travis-ci.org/bblue/ruby.svg?branch=develop)](https://travis-ci.org/bblue/ruby)
+[![Coverage Status](https://coveralls.io/repos/bblue/ruby/badge.svg?branch=develop&service=github)](https://coveralls.io/github/bblue/ruby?branch=develop)
 
 **Attention**: This framework is considered to be alpha quality and currently under development. Documentation might not be up-to-date, as well as functionality missing or things simply not working as intended or expected. Also for now, you'll have to install and configure this framework manually via git. You have been warned.
 
