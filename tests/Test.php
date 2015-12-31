@@ -11,5 +11,8 @@ $test =  new Test;
  */
 class Test extends PHPUnit_Framework_TestCase
 {
-
+	public function testHello()
+	{
+		return true;
+	}
 }
