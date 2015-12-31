@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/bblue/ruby.svg?branch=develop)](https://travis-ci.org/bblue/ruby)
 [![Coverage Status](https://coveralls.io/repos/bblue/ruby/badge.svg?branch=develop&service=github)](https://coveralls.io/github/bblue/ruby?branch=develop)
+[![Current release](https://img.shields.io/github/release/bblue/ruby.svg)](https://github.com/bblue/ruby/releases/latest)
 
 **Attention**: This framework is considered to be alpha quality and currently under development. Documentation might not be up-to-date, as well as functionality missing or things simply not working as intended or expected. Also for now, you'll have to install and configure this framework manually via git. You have been warned.
 
