@@ -56,21 +56,35 @@ Note that a separate configuration file and bootstrp file is requried. Example f
 
 <a name="configuration-key-bindings" />
 
+<a name="dependencies" />
+## Dependencies
+
+_Required_
+ 
+ * Doctrine
+ * Twig
+ * PHPmailer
+ 
+_Optional_
+
+ * Symfony (for management of doctrine)
 
 <a name="troubleshooting" />
 
 ## Troubleshooting
 
-The framework is compliant with PSR-3 loggers and ships with a file logger and an echo logger by default. In order to enable additional diagnostic messages, adjust user setting "log_level" as follows:
+The framework is compliant with PSR-3 loggers and ships with a file logger and an echo logger by default. In order to enable additional diagnostic messages, adjust user setting "sLogLevelThreshold" as follows:
 
-| Level                     | Description                                                    |
-| ------------------------- | -------------------------------------------------------------- |
-| `0`, `error`              | Errors.                                                        |
-| `1`, `warn`, `warning`    | Warnings.                                                      |
-| `2`, `notice`             | Notices. This is the default logging level.                    |
-| `3`, `info`               | Informational messages.                                        |
-| `4`, `debug`              | Debugging messages.                                            |
-| `5`, `trace`              | Tracing. Using this level might noticeably slow down plugin.   |
+| Level                     | Description                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| `1`, `debug`              | Detailed debug information                                                                        |
+| `2`, `info`               | Interesting events                                                                                |
+| `3`, `notice`             | Normal but significant events. This is the default logging level                                  |
+| `4`, `warning`            | Exceptional occurrences that are not error                                                        |
+| `5`, `error`              | Runtime errors that do not require immediate action but should typically be logged and monitored  |
+| `6`, `critical`           | Critical conditions|                                                                              |
+| `7`, `alert`              | Action must be taken immediately                                                                  |
+| `8`, `emergency`          | System is unusable                                                                                |
 
 <a name="reporting-bugs" />
 
