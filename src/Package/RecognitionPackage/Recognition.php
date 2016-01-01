@@ -36,7 +36,8 @@ final class Recognition extends AbstractPackage
             ->register('services.login', 'bblue\ruby\Package\RecognitionPackage\LoginService')
                 ->addConstructorArgument('@request', 2)
                 ->addConstructorArgument('@authTokenFactory', 3)
-                ->addConstructorArgument('@userProviderStack', 4);
+                ->addConstructorArgument('@userProviderStack', 4)
+            ->register('GuestProvider', 'bblue\ruby\Package\RecognitionPackage\GuestProvider');
             /**->register('auth', 'bblue\ruby\Package\RecognitionPackage\AuthenticationService')
                 ->addConstructorArgument(new Reference('request'), 1)
             ->register('LoginTokenHandler', 'bblue\ruby\Package\RecognitionPackage\LoginTokenHandler')*/
@@ -68,9 +69,10 @@ final class Recognition extends AbstractPackage
     	});
         
 
-    	/** Add a user provider to auth service */
+    	/** Add a user providers to usr provider stack */
     	$this->container->addMethodCall('add', ['@UserService'], '@userProviderStack');
-    	
+    	$this->container->addMethodCall('add', ['@GuestProvider'], '@userProviderStack');
+
     	/** Register new modules */
     	$this->registerModules();
     	
