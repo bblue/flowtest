@@ -20,5 +20,11 @@ matrix:
   allow_failures:
     - php: '7.0'
 
+# whitelist
+branches:
+  only:
+    - develop
+    - stable
+
 env:
  - CODACY_PROJECT_TOKEN = 53d54419f0a54001a1755731a5e9693b
