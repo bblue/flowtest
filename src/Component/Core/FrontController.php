@@ -70,10 +70,10 @@ final class FrontController extends AbstractController implements EventDispatche
 
 		    try {
 		        return $this->dispatcher->dispatch($route);  
-		    } catch (Exception $e) {
+		    } catch (\Exception $e) {
 		        // If everything failes-> route to static error page
 		        //@todo gjøre denne smartere/bedre
-		        die('The site encountered double exceptions. Unable to recover.');
+		        throw new \Exception('The site encountered double exceptions. Unable to recover.');
 		    } finally {
 		        $this->logger->emergency('Error occured during route to 500 error! Unable to recover from this exception.');
 		    }
