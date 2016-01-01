@@ -19,9 +19,9 @@ final class UserProviderStack implements iUserProviderStack
                     return $user;
                 }
             }
-        } else {
-            throw new \Exception('No user provider in stack');
-        } 
+            throw new \Exception('No user provideres were able to return a user with this ID ('. $userId . ')', code, previous)
+        }
+        throw new \Exception('No user provider in stack');
     }
     
     public function getByUsername($username)
