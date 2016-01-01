@@ -1,8 +1,8 @@
 # Ruby CMS
 
 [![Build Status](https://travis-ci.org/bblue/ruby.svg?branch=develop)](https://travis-ci.org/bblue/ruby)
-[![Coverage status](https://api.codacy.com/project/badge/coverage/53d54419f0a54001a1755731a5e9693b)](https://www.codacy.com/app/aleksander-lanes/ruby/php-codacy-coverage)
-[![Codacy code quality](https://api.codacy.com/project/badge/grade/34da45a87d5a4ee18b9acf2c682eaa82)](https://www.codacy.com/app/aleksander-lanes/ruby)
+[![Coverage status](https://api.codacy.com/project/badge/coverage/53d54419f0a54001a1755731a5e9693b)](https://www.codacy.com/app/bblue/ruby/php-codacy-coverage)
+[![Codacy code quality](https://api.codacy.com/project/badge/grade/34da45a87d5a4ee18b9acf2c682eaa82)](https://www.codacy.com/app/bblue/ruby)
 [![Current release](https://img.shields.io/github/release/bblue/ruby.svg)](https://github.com/bblue/ruby/releases/latest)
 
 **Attention**: This framework is considered to be alpha quality and currently under development. Documentation might not be up-to-date, as well as functionality missing or things simply not working as intended or expected. Also for now, you'll have to install and configure this framework manually via git. You have been warned.
