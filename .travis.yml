@@ -12,6 +12,7 @@ script:
  - mkdir -p build/logs
 
 after_script:
+ - export CODACY_PROJECT_TOKEN=53d54419f0a54001a1755731a5e9693b
  - php vendor/bin/codacycoverage clover build/logs/clover.xml
 
 matrix:
@@ -20,4 +21,4 @@ matrix:
     - php: '7.0'
 
 env:
- - CODACY_PROJECT_TOKEN = 53d54419f0a54001a1755731a5e9693b;
+ - CODACY_PROJECT_TOKEN = 53d54419f0a54001a1755731a5e9693b
