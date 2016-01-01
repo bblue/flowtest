@@ -1,7 +1,7 @@
 <phpunit backupGlobals="true" bootstrap="./bootstrap.php">
 	<testsuites>
 		<testsuite name="Test of phpunit">
-			<directory>./vendor</directory>
+			<directory>./tests</directory>
 		</testsuite>
 	</testsuites>
 		  	<filter>
