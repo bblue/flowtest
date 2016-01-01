@@ -1,14 +1,14 @@
 <phpunit backupGlobals="true" bootstrap="./bootstrap.php">
 	<testsuites>
 		<testsuite name="Test of phpunit">
-			<directory>./</directory>
+			<directory>../tests</directory>
 		</testsuite>
 	</testsuites>
   	<filter>
         <whitelist>
-            <directory suffix=".php">./src</directory>
+            <directory suffix=".php">../src</directory>
             <exclude>
-                <directory>./tests</directory>
+                <directory>../tests</directory>
             </exclude>
         </whitelist>
     </filter>
