@@ -5,7 +5,6 @@
  */
 $test =  new Test;
 
-
 /**
  * Initial test class for experimenting with PHPUnit
  */
