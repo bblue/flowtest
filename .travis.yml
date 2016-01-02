@@ -12,7 +12,7 @@ script:
  - phpunit --configuration tests/phpunit.xml --coverage-clover build/logs/clover.xml
 
 after_script:
- - export CODACY_PROJECT_TOKEN=UNEXPORTED_CODACY_PROJECT_TOKEN
+ - export CODACY_PROJECT_TOKEN
  - php vendor/bin/codacycoverage clover build/logs/clover.xml
 
 matrix:
