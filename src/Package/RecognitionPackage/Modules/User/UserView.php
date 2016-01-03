@@ -14,7 +14,6 @@ class UserView extends AbstractTwigAwareView
 	public function login()
 	{
 	    $user = $this->container->get('auth')->getUser();
-
 	    if($user->isGuest()) {
 	        $tpl = $this->twig->loadTemplate('@'.self::MODULE_NAME.'/full-page-login.twig'); //@todo: Denne templaten har en dependency for helloWorld via toString() funksjonen implementert i Twig. Dette burde jeg fikse på en måte slik at det er mer synlig.
 	        $this->response->setOutput($tpl->render( [
@@ -24,9 +23,10 @@ class UserView extends AbstractTwigAwareView
 	            'request'                  => $this->request,
 	            'flash'                    => $this->container->get('flash')
 	        ]));
+	        return $this->response;
 	    } else {
 	        return new RedirectResponse($this->request->getTargetUrl() ? : '/');
-	    }	        
+	    }
 	}
 	
 	public function logout()
@@ -43,6 +43,6 @@ class UserView extends AbstractTwigAwareView
 	        'user'                     => $this->container->get('auth')->getUser(),
 	        'request'                  => $this->request
 	    ]));
-	    
+	    return $this->response;
 	}
 }

@@ -12,7 +12,6 @@ use Psr\Log\LoggerAwareInterface;
 use bblue\ruby\Component\Logger\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use bblue\ruby\Component\Flasher\Flasher;
-use bblue\ruby\Component\Flasher\SessionFlasherStorage;
 use bblue\ruby\Component\Module\AbstractController;
 
 final class FrontController extends AbstractController implements EventDispatcherAwareInterface, LoggerAwareInterface, FrontControllerEvent //@todo: Vurdere å fjerne frontcontrollerevent fullstendig
@@ -23,11 +22,6 @@ final class FrontController extends AbstractController implements EventDispatche
 	private $dispatcher;
 	private $router;
 	
-	/**
-	 * @var SessionHandler
-	 */
-	private $session;
-
 	/**
 	 * @var Flasher
 	 */

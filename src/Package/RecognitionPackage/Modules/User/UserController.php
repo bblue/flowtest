@@ -21,12 +21,10 @@ class UserController extends AbstractController
 	public function nativeLogin()
 	{
 	    $form = new LoginForm('loginform', $this->request->_post());
-	    
 	    if($form->isSubmitted() && $form->isValid()) {
-	        $loginProvider = $this->container->get('nativeLogin');
+	        $loginProvider = $this->container->get('nativeLogin'); //@TODO: denne burde kalles på en mer generell måte ala modules for HMVC
 	        $loginProvider->handle($form);
 	    }
-	    
 	    return $this->getResponseObject(['loginForm'=>$form]);
 	}
 	

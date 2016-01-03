@@ -171,7 +171,7 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
             throw new \Exception('Provided object is not a class definition object, but a ' . gettype($class));
         }
         
-        $this->_currentDefinition = $object;
+        $this->_currentDefinition = $class;
         
         return $this;
     }
@@ -202,22 +202,6 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
         	    $target->setEventDispatcher($this->get('eventDispatcher'));
             }
         }        
-    }
-    
-    private function runMethods($object, $methods)
-    {
-        foreach($aMethodCalls as $aMethodData) {
-            foreach($aMethodData['aParameters'] as &$parameter) {
-                if($parameter instanceof Reference) {
-                    $parameter = $this->get($parameter->getName());
-                } elseif(is_string($parameter)) {
-                    if($this->isMagicParameterString($parameter)) {
-                        $parameter = $this->getMagicParameter($parameter);
-                    }
-                }
-            }
-            call_user_func_array(array($instance, $aMethodData['sMethod']), $aMethodData['aParameters']);
-        } 
     }
     
     /**

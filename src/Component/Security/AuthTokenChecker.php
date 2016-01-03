@@ -62,6 +62,10 @@ final class AuthTokenChecker implements iAuthTokenChecker, iValidationBasics
         // Log auth attempt
 
         $this->_validated = true; //@todo finne ut hvorfor jeg egentlig har denne. tror det er et spøkelse
+
+        $this->token->isValid(true);
+
+        return true;
     }
 }
 

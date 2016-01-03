@@ -105,12 +105,9 @@ final class LoginService implements LoggerAwareInterface
     public function registerCurrentLoginAttempt(User $user = null, AbstractRequest $request = null)
     {
         $request = $this->_getRequest($request);
-        
         $loginAttempt = new LoginAttempt();
-        $this->_em->persist($loginAttempt);
-        
         $loginAttempt->setIP($request->getClientAddress());
-
+        $this->_em->persist($loginAttempt);
         if($user) {
             $user->addLoginAttempt($loginAttempt);
         }
@@ -137,7 +134,6 @@ final class LoginService implements LoggerAwareInterface
     public function setLoginTimelock(User $user = null, AbstractRequest $request = null)
     {
         $this->_getRequest($request)->setLoginTimelock(self::LOGIN_TIMELOCK);
-        
         if($user) {
             $user->setLoginTimelock(self::LOGIN_TIMELOCK);
         }
@@ -180,21 +176,15 @@ final class LoginService implements LoggerAwareInterface
         try {
             $user = $token->getUser();
             $this->logger->notice('Trying to log in as user ' . $user->getUsername());
-
             if($user->isGuest()) {
                 throw new \Exception('It makes no sense for a guest to log in');
             }
-            
             $this->registerCurrentLoginAttempt($user);
-            
             if(!$this->auth->handle($token, $user)) {
                 throw new \Exception('Unable to authenticate user');
             }
-            
             $this->session->regenerate();
-            
             $this->logger->notice($user->getUsername() . ' logged in');
-            
             $this->getCurrentLoginAttempt($user)->setStatus(LoginAttempt::SUCCESSFUL_LOGIN);
             
             return true;
@@ -209,12 +199,9 @@ final class LoginService implements LoggerAwareInterface
         if($user->isGuest()) {
             throw new \RuntimeException('A guest may not log out');
         }
-         
         $this->logger->info('Logging out ' . $user->getUsername()); //@todo: Vurdere om ikke jeg skal lage en logger listener som automatisk logger enkelte signals. Da slipper jeg å skrive så mange av disse beskjedene, men kan heller dytte alt inn i en samlesak
-    
         $this->session->delete('user_id');
         $this->session->restart();
-    
         $em = $this->container->get('entityManager'); /* @var $em EntityMananger */
         $em->detach($user);
         $user = $this->container->get('userService')->createGuest();
@@ -231,9 +218,7 @@ final class LoginService implements LoggerAwareInterface
     public function createToken(User $user, AbstractRequest $request = null)
     {
         $request = $this->_getRequest($request);
-        
         $token = $this->tokenFactory->build();
-
         $this->_prepareToken($token, $request, $user);
         
         return $token;
@@ -243,10 +228,8 @@ final class LoginService implements LoggerAwareInterface
     public function createAnonomyousToken(AbstractRequest $request = null)
     {
         $request = $this->_getRequest($request);
-        
         $token = $this->tokenFactory->buildAnonomyousToken();
         $token->isValid(true);
-        
         $this->_prepareToken($token, $request, $user);
         
         return $token;

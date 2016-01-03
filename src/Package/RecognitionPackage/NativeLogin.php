@@ -44,10 +44,8 @@ final class NativeLogin implements LoggerAwareInterface
         try {
             // Get the user
             $user = $this->loginService->getUserByUsername($form->getUsername());
-            
             // Register user login attempt
             $this->loginService->registerCurrentLoginAttempt($user);
-
             // Check number of login attempts for this user and client
             if(!$this->loginService->isBelowLoginAttemptThreshold($user)) {
                 $this->logger->notice('Login threshold reached for user');
@@ -55,20 +53,15 @@ final class NativeLogin implements LoggerAwareInterface
                 $form->setError('No login attempts remining. You may not log in for the next 15 minututes.');
                 $form->disable();
             }
-            
             if(!$user) {
                 $this->logger->notice('Invalid username provided');
                 throw new InvalidCredentialsException('User does not exists');
             }
-            
             if(!$user->matchPassword($form->getPassword())) {
                 $this->logger->notice('Invalid password provided for user ' . $user->getUsername());
                 throw new InvalidCredentialsException('Invalid password');
             }
-            
-            $token = $this->loginService->createToken($user);
-            
-            return $this->loginService->login($token); //@todo kalles finally når jeg returnerer her?
+            return $this->loginService->login($this->loginService->createToken($user)); //@todo kalles finally når jeg returnerer her?
         } catch (InvalidCredentialsException $e) {
             $form->setError(LoginForm::USERNAME_OR_PASSWORD_ERROR);
             $form->getElement('username')->setError();

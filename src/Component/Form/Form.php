@@ -41,7 +41,6 @@ class Form
             $this->getElement($sElementName)->setValue($mValue);
             $this->bValidated = false;
         }
-
         return $this;
     }
     
@@ -57,13 +56,11 @@ class Form
                 throw new \RuntimeException('Unknown element attempted validated');
             }
         }
-
         /* @var $element Element */
         if($element->isValid()) {
             $this->registerElementWithError($element);
             return false;
         }
-        
         return true;
     }
     
@@ -72,16 +69,13 @@ class Form
         $bHasErrors = false;
         foreach($this->aElements as $sElementName => $aElementInfo) {
             $element = $aElementInfo['element'];
-            
             if($element->isValid()) {
                continue; 
-            } else {
-                $this->registerElementWithError($element);
-                $bHasErrors = true;
             }
+            $this->registerElementWithError($element);
+            $bHasErrors = true;
         }
         $this->bValidated = true;
-        
         return $bHasErrors;
     }
     

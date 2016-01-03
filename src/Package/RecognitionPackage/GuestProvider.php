@@ -7,9 +7,9 @@ use bblue\ruby\Entities\Guest;
 
 final class GuestProvider implements iUserProvider
 {
-	public function getById($id)
+	public function getById($userId)
 	{
-		if($id === Guest::GUEST_ID) {
+		if($userId === Guest::GUEST_ID) {
 			return new Guest;
 		}
 	}

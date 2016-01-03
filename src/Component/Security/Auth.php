@@ -23,12 +23,6 @@ final class Auth implements EventDispatcherAwareInterface, LoggerAwareInterface
     use LoggerAwareTrait;
 
     /**
-     * A user checker
-     * @var iUserChecker
-     */
-    private $userChecker;
-
-    /**
      * An auth token storage system
      * @var iAuthStorage
      */
@@ -65,12 +59,12 @@ final class Auth implements EventDispatcherAwareInterface, LoggerAwareInterface
      */
     public function getUser()
     {
-        if($token = $this->_getToken()) {
-            $this->logger->debug('Auth service returning user object');
-            return $token->getUser();
-        } else {
-            throw new \Exception('Unable to retrieve any auth token objects. Unable to retrieve any user objects');
+        $token = $this->_getToken();
+        if(!$token->hasUser()) {
+            throw new \Exception('Unable to retreive user from token object');
         }
+        $this->logger->debug('Auth service returning user object');
+        return $token->getUser();
     }
 
     /**
@@ -84,23 +78,17 @@ final class Auth implements EventDispatcherAwareInterface, LoggerAwareInterface
     public function handle(iAuthToken $token)
     {
         $this->logger->info('Auth token received. Trying to authenticate');
-
         $tokenChecker = new AuthTokenChecker($token, $this->request);
-
-        if($tokenChecker->isValid()) {
-            $token->isValid(true);
-            $this->logger->notice('Authenticated as '. $token->getUser()->getUsername());
-
-            // Store the token in object memory
-            $this->_setToken($token);
-
-            // Store the token in token storage mechanism
-            $this->storage->storeToken($token);
-
-            return true;
-        } else {
+        $tokenChecker->validate();
+        if(!$token->isValid()) {
             throw new AuthException(implode("\n", $tokenChecker->getErrors()));
         }
+        $this->logger->notice('Authenticated as '. $token->getUser()->getUsername());
+        // Store the token in object memory
+        $this->_setToken($token);
+        // Store the token in token storage mechanism
+        $this->storage->storeToken($token);
+        return true;
     }
 
     /**
@@ -114,28 +102,30 @@ final class Auth implements EventDispatcherAwareInterface, LoggerAwareInterface
     private function _getToken()
     {
         // Check if we have already a token in object memory
-        if(!$this->token) {
-            // Try to load a token from token storage
-            if($token = $this->storage->getToken()) {
-                $this->logger->info('Auth token found in auth storage');
-                $this->handle($token);
-            } else {
-                $this->logger->info('No auth token stored in system. Sending auth beacon.');
-                // As a last attempt, create a signal to allow external parties to add a token //@todo dette er muligens et digert sikkerhetshull. Jeg exposer hele auth systemet
-                if($this->eventDispatcher->dispatch(AuthEvent::NO_AUTH_TOKEN, ['auth'=>$this])) {
-                    $this->logger->debug('Auth beacon was picked up');
-                }
+        if($this->token) {
+            return $this->token;
+        }
+        // Try to load a token from token storage
+        if($token = $this->storage->getToken()) {
+            $this->logger->info('Auth token found in auth storage');
+            $this->handle($token);
+            return $this->token;
+        }
+        // As a last attempt, create a signal to allow external parties to add a token //@todo dette er muligens et digert sikkerhetshull. Jeg exposer hele auth systemet
+        $this->logger->info('No auth token stored in system. Sending auth beacon.');
+        if($this->eventDispatcher->dispatch(AuthEvent::NO_AUTH_TOKEN, ['auth'=>$this])) {
+            if(isset($this->token)) {
+                $this->logger->debug('Auth beacon was picked up');
+                return $this->token;
             }
         }
-
-        return $this->token;
+        throw new \Exception("Unable to retrieve a login token");
     }
 
     private function _setToken(iAuthToken $token)
     {
         $this->token = $token;
     }
-
 }
 
 final class AuthException extends \RuntimeException {};

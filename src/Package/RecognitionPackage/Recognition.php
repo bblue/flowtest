@@ -48,7 +48,7 @@ final class Recognition extends AbstractPackage
             $twig = $event->twig;
             $this->eventDispatcher->addListener(DispatcherEvent::VIEW_LOADED, function(Event $event) use ($twig)
             {
-                $view = $event->view;
+                //@todo: legacy, denne kan nok fjernes $view = $event->view;
                 if(is_dir($sTemplateDir = __DIR__ . '/Modules/User/templates')) {
                     $loader = new \Twig_Loader_Filesystem();
                     $loader->addPath($sTemplateDir, 'User');

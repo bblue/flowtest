@@ -4,29 +4,27 @@ namespace bblue\ruby\Component\EventDispatcher;
 
 class Event implements EventInterface
 {
-    protected $_data = array();
-    private $dispatcher;
+    protected $data = array();
     private $caller;
 
-    public function __construct(array $params = array())
+    public function __construct(array $parameters = array())
     {
-        foreach ($params as $key => $value) {
+        foreach ($parameters as $key => $value) {
             $this->$key = $value;
         }
     }
     
-    public function __set($sParam, $mValue)
+    public function __set($parameter, $value)
     {
-        $this->_data[$sParam] = $mValue;
+        $this->data[$parameter] = $value;
         return $this;
     }
 
-    public function __get($sParam)
+    public function __get($parameter)
     {
-        if(isset($this->_data[$sParam])) {
-            return $this->_data[$sParam];
-        } else {
-            throw new \UnexpectedValueException($sParam . ' is unset');
+        if(!isset($this->data[$parameter])) {
+            throw new \UnexpectedValueException($parameter . ' is unset');
         }
+        return $this->data[$parameter];
     }
 }

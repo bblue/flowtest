@@ -30,8 +30,6 @@ class SessionHandler implements LoggerAwareInterface
      */
     private $_autoRestarted;
     
-    private $_started;
-    
     public function __construct(Psr3LoggerHandler $logger, array $aSettings = array())
     {
         $this->setLogger($logger);

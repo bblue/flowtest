@@ -3,14 +3,18 @@ namespace bblue\ruby\Component\Security;
 
 use bblue\ruby\Component\Core\SessionHandler;
 use bblue\ruby\Component\Core\iUserProvider;
+
 final class AuthStorage implements iAuthStorage
 {
     /**
      * @var SessionHandler
      */
     private $session;
+
     private $tokenFactory;
+    
     private $userProvider;
+    
     const AUTH_TOKEN_VAR_NAME = 'authTokenID';
     
     public function __construct(SessionHandler $session, AuthTokenFactory $tokenFactory, iUserProvider $userProvider) 
@@ -31,11 +35,11 @@ final class AuthStorage implements iAuthStorage
     
     public function storeToken(iAuthToken $token)
     {
-        if($token->isValid()) {
-            $this->session->set(self::AUTH_TOKEN_VAR_NAME, $token->toArray());
-        } else {
+        if(!$token->isValid()) {
             throw new \Exception('Auth token is invalid. Refusing to store it');
         }
+        $this->session->set(self::AUTH_TOKEN_VAR_NAME, $token->toArray());
+        return true;
     }
     
     public function deleteToken()

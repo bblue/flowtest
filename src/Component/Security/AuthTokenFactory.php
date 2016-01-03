@@ -2,6 +2,7 @@
 namespace bblue\ruby\Component\Security;
 
 use bblue\ruby\Package\RecognitionPackage\AnonomyousAuthToken;
+
 final class AuthTokenFactory
 {
     public function build($data = null)
