@@ -96,12 +96,10 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
         } elseif (array_key_exists($id, $this->_aDefinitions)) {
         	$return = $this->createFromDefinition($this->_aDefinitions[$id]);
         }
-
         if($required && !is_object($return)) {
-            throw new \Exception('The container was unable to retrive an object instance for the reference ' . $id);
-        } else {
-            return $return;
+            $this->logger->error('Container unable to return required object ('.$id.')');
         }
+        return $return;
     }
     
     /**
@@ -205,7 +203,7 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
     }
     
     /**
-     * @todo Min class definition burde faktisk være en reflection object. Det er essensielt samme greie.
+     * @todo Min class definition burde faktisk væ en reflection object. Det er essensielt samme greie.
      * @todo Denne må skrives om nok en gang
      * @param ClassDefinition $definition
      * @throws \OutOfRangeException

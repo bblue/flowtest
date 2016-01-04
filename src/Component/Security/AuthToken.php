@@ -3,7 +3,7 @@ namespace bblue\ruby\Component\Security;
 
 use bblue\ruby\Entities\User;
 
-final class AuthToken implements iAuthToken
+class AuthToken implements iAuthToken
 {
     private $valid = null;
     
@@ -42,7 +42,7 @@ final class AuthToken implements iAuthToken
     public function getUser()
     {
         if(!$this->hasUser()) {
-            throw new Exception('No user set in AuthToken');
+            throw new \Exception('No user set in AuthToken');
         }
         return $this->user; 
     }

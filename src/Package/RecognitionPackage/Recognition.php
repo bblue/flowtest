@@ -33,10 +33,10 @@ final class Recognition extends AbstractPackage
             ->register('authTokenFactory', 'bblue\ruby\Component\Security\AuthTokenFactory')
             ->register('nativeLogin', 'bblue\ruby\Package\RecognitionPackage\NativeLogin')
                 ->addConstructorArgument('@services.login')
+                ->addConstructorArgument('@userProviderStack')
             ->register('services.login', 'bblue\ruby\Package\RecognitionPackage\LoginService')
                 ->addConstructorArgument('@request', 2)
                 ->addConstructorArgument('@authTokenFactory', 3)
-                ->addConstructorArgument('@userProviderStack', 4)
             ->register('GuestProvider', 'bblue\ruby\Package\RecognitionPackage\GuestProvider');
             /**->register('auth', 'bblue\ruby\Package\RecognitionPackage\AuthenticationService')
                 ->addConstructorArgument(new Reference('request'), 1)
@@ -67,19 +67,15 @@ final class Recognition extends AbstractPackage
     		        'ACTION'		=> 'login'
     		    )));
     	});
-        
-
     	/** Add a user providers to usr provider stack */
     	$this->container->addMethodCall('add', ['@UserService'], '@userProviderStack');
     	$this->container->addMethodCall('add', ['@GuestProvider'], '@userProviderStack');
-
     	/** Register new modules */
     	$this->registerModules();
-    	
     	/** Enable anonomyous authentication */
     	$this->eventDispatcher->addListener(AuthEvent::NO_AUTH_TOKEN, function(Event $event) {
-    	    $login = new AnonomyousLogin($this->container->get('services.login'), $this->container->get('userService'));
-    	    $login->handle($event->auth);
+    	    $tokenProvider = new AnonomyousAuthTokenProvider($this->container->get('authTokenFactory'), $this->container->get('request'), $this->container->get('userProviderStack'));
+    	    $event->auth->handle($tokenProvider->getToken());
     	});
         return true;
     }

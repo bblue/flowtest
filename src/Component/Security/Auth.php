@@ -78,10 +78,10 @@ final class Auth implements EventDispatcherAwareInterface, LoggerAwareInterface
     public function handle(iAuthToken $token)
     {
         $this->logger->info('Auth token received. Trying to authenticate');
-        $tokenChecker = new AuthTokenChecker($token, $this->request);
-        $tokenChecker->validate();
+        $tokenValidator = new AuthTokenValidator($token, $this->request); //@todo: lage en stack med disse som kan støtte ulike tokens, ala symfony
+        $tokenValidator->validate();
         if(!$token->isValid()) {
-            throw new AuthException(implode("\n", $tokenChecker->getErrors()));
+            throw new AuthException(implode("\n", $tokenValidator->getErrors()));
         }
         $this->logger->notice('Authenticated as '. $token->getUser()->getUsername());
         // Store the token in object memory
@@ -114,8 +114,8 @@ final class Auth implements EventDispatcherAwareInterface, LoggerAwareInterface
         // As a last attempt, create a signal to allow external parties to add a token //@todo dette er muligens et digert sikkerhetshull. Jeg exposer hele auth systemet
         $this->logger->info('No auth token stored in system. Sending auth beacon.');
         if($this->eventDispatcher->dispatch(AuthEvent::NO_AUTH_TOKEN, ['auth'=>$this])) {
+            $this->logger->debug('Auth beacon was picked up');
             if(isset($this->token)) {
-                $this->logger->debug('Auth beacon was picked up');
                 return $this->token;
             }
         }

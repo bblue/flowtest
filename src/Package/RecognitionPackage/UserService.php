@@ -52,16 +52,6 @@ final class UserService implements iUserProvider
         }
     }
     
-    public function getGuest()
-    {
-        return $this->em->find('bblue\ruby\Entities\User', Guest::GUEST_ID);
-    }
-    
-    public function createGuest()
-    {
-        return new Guest();
-    }
-    
     public function assertUsernameIsAvailable($username)
     {
         return !($this->getByUsername($username));

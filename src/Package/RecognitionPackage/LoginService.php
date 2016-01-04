@@ -8,6 +8,7 @@ use bblue\ruby\Component\Logger\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManager;
 use bblue\ruby\Entities\User;
+use bblue\ruby\Entities\Guest;
 use bblue\ruby\Component\Security\Auth;
 use bblue\ruby\Component\Security\iAuthToken;
 use bblue\ruby\Component\Security\AuthException;
@@ -16,7 +17,6 @@ use bblue\ruby\Component\Security\AuthTokenFactory;
 use Psr\Log\LoggerAwareInterface;
 use bblue\ruby\Entities\LoginAttempt;
 use Doctrine\DBAL\Schema\AbstractAsset;
-use bblue\ruby\Component\Core\iUserProvider;
 use bblue\ruby\Component\Security\PasswordHelper;
 
 /** 
@@ -63,12 +63,6 @@ final class LoginService implements LoggerAwareInterface
      * @var AbstractRequest
      */
     private $request;
-    
-    /**
-     * A user provider
-     * @var iUserProvider
-     */
-    private $userProvider;
       
     /**
      * The session
@@ -76,23 +70,13 @@ final class LoginService implements LoggerAwareInterface
      */
     private $session;
     
-    public function __construct(Auth $auth, EntityManager $em, AbstractRequest $request, AuthTokenFactory $tokenFactory, iUserProvider $userProvider, SessionHandler $session)
+    public function __construct(Auth $auth, EntityManager $em, AbstractRequest $request, AuthTokenFactory $tokenFactory, SessionHandler $session)
     {
         $this->auth = $auth;
         $this->_em = $em;
         $this->tokenFactory = $tokenFactory;
         $this->request = $request;
-        $this->userProvider = $userProvider;
         $this->session = $session;
-    }
-    
-    /**
-     * Get a user by its username
-     * @return User
-     */
-    public function getUserByUsername($username)
-    {
-        return $this->userProvider->getByUsername($username);
     }
     
     /**
@@ -111,7 +95,6 @@ final class LoginService implements LoggerAwareInterface
         if($user) {
             $user->addLoginAttempt($loginAttempt);
         }
-
         return true;
     }
     
@@ -137,7 +120,6 @@ final class LoginService implements LoggerAwareInterface
         if($user) {
             $user->setLoginTimelock(self::LOGIN_TIMELOCK);
         }
-        
     }
     
     public function isBelowLoginAttemptThreshold(User $user = null, AbstractRequest $request = null)
@@ -224,13 +206,11 @@ final class LoginService implements LoggerAwareInterface
         return $token;
     }
     
-    //@todo tror ikke denne brukes
     public function createAnonomyousToken(AbstractRequest $request = null)
     {
         $request = $this->_getRequest($request);
         $token = $this->tokenFactory->buildAnonomyousToken();
-        $token->isValid(true);
-        $this->_prepareToken($token, $request, $user);
+        $this->_prepareToken($token, $request, $this->userProvider->getById(GUEST::GUEST_ID));
         
         return $token;
     }

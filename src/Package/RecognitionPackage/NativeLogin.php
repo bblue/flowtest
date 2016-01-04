@@ -4,6 +4,8 @@ namespace bblue\ruby\Package\RecognitionPackage;
 use bblue\ruby\Package\RecognitionPackage\Modules\User\Forms\LoginForm;
 use Psr\Log\LoggerAwareInterface;
 use bblue\ruby\Component\Logger\LoggerAwareTrait;
+use bblue\ruby\Component\Core\iUserProvider;
+use bblue\ruby\Component\Core\AbstractRequest;
 
 /**
  * Class to provide native username/password login capabilites
@@ -16,7 +18,19 @@ use bblue\ruby\Component\Logger\LoggerAwareTrait;
 final class NativeLogin implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
-    
+
+    /**
+     * A user provider
+     * @var iUserProvider
+     */
+    private $userProvider;
+
+    /**
+     * The request object
+     * @var AbstractRequest
+     */
+    private $request;
+
     /**
      * The login service to enable logging in
      * @var LoginService
@@ -27,9 +41,11 @@ final class NativeLogin implements LoggerAwareInterface
      * Constructor does no more than assign parameters
      * @param LoginService $loginService
      */
-    public function __construct(LoginService $loginService)
+    public function __construct(LoginService $loginService, iUserProvider $userProvider, AbstractRequest $reqeust)
     {
         $this->loginService = $loginService;
+        $this->userProvider = $userProvider;
+        $this->request = $request;
     }
     
     /**
@@ -43,7 +59,7 @@ final class NativeLogin implements LoggerAwareInterface
     {
         try {
             // Get the user
-            $user = $this->loginService->getUserByUsername($form->getUsername());
+            $user = $this->userProvider->getByUsername($form->getUsername());;
             // Register user login attempt
             $this->loginService->registerCurrentLoginAttempt($user);
             // Check number of login attempts for this user and client
@@ -61,6 +77,7 @@ final class NativeLogin implements LoggerAwareInterface
                 $this->logger->notice('Invalid password provided for user ' . $user->getUsername());
                 throw new InvalidCredentialsException('Invalid password');
             }
+            // All checks passed. Proceed with login
             return $this->loginService->login($this->loginService->createToken($user)); //@todo kalles finally når jeg returnerer her?
         } catch (InvalidCredentialsException $e) {
             $form->setError(LoginForm::USERNAME_OR_PASSWORD_ERROR);
