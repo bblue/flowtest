@@ -83,21 +83,21 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
     {
         $return = null; //The object to be returned
         
-        $id = strtolower(($mReference instanceof Reference) ? $mReference->getName() : $mReference);
+        $className = strtolower(($mReference instanceof Reference) ? $mReference->getName() : $mReference);
         
         // Check if alias exists and call the method again
-        if(array_key_exists($id, $this->_aClassAliasNames)) {
-        	return $this->get($this->_aClassAliasNames[$id], $required);
+        if(array_key_exists($className, $this->_aClassAliasNames)) {
+        	return $this->get($this->_aClassAliasNames[$className], $required);
         }
 
         // Check if the class is already loaded
-        if(array_key_exists($id, $this->_aClasses)) {
-            $return = $this->_aClasses[$id];
-        } elseif (array_key_exists($id, $this->_aDefinitions)) {
-        	$return = $this->createFromDefinition($this->_aDefinitions[$id]);
+        if(array_key_exists($className, $this->_aClasses)) {
+            $return = $this->_aClasses[$className];
+        } elseif (array_key_exists($className, $this->_aDefinitions)) {
+        	$return = $this->createFromDefinition($this->_aDefinitions[$className]);
         }
         if($required && !is_object($return)) {
-            $this->logger->error('Container unable to return required object ('.$id.')');
+            $this->logger->error('Container unable to return required object ('.$className.')');
         }
         return $return;
     }
@@ -112,16 +112,14 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
      */
     public function getAsReference($classToReference = null)
     {
-        if(!$classToReference) {
-            $this->hasActiveDefinitionObject();
-            $classToReference = $this->_currentDefinition->getFullClassName();
-        } else {
-            // Check if alias exists and call the method again
+        // Check if alias exists and call the method again  
+        if($classToReference) {
             if(array_key_exists($classToReference, $this->_aClassAliasNames)) {
                 return $this->getAsReference($this->_aClassAliasNames[$classToReference]);
-            }            
+            }   
         }
-        
+        $this->requireActiveDefinitionObject();
+        $classToReference = $this->_currentDefinition->getFullClassName();
         return new Reference($classToReference);
     }
     
@@ -145,15 +143,14 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
      */
     public function getAsDefinition($class = null)
     {
-        $id = strtolower(($class instanceof Reference) ? $class->getName() : $class);
+        $className = strtolower(($class instanceof Reference) ? $class->getName() : $class);
         
-        if(!$id) {
-            $this->hasActiveDefinitionObject();
+        if($className === null) {
+            $this->requireActiveDefinitionObject();
             return $this->_currentDefinition;
-        } else {
-            if(array_key_exists($id, $this->_aDefinitions)) {
-                return $this->_aDefinitions[$id];
-            }
+        }
+        if(array_key_exists($className, $this->_aDefinitions)) {
+            return $this->_aDefinitions[$className];
         }
     }
     
@@ -212,21 +209,17 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
     private function createFromDefinition(ClassDefinition $definition)
     {
         $this->logger->debug('Trying to load definition object ('.$definition->getFullClassName().')');
-        
         // Check for explicit include path
         if(!empty($definition->sIncludePath)) {
             $this->logger->debug('Definition object has include path (' . $definition->sIncludePath . ')');
             require $definition->sIncludePath;
         }
-        
         $defParameters = $definition->getConstructorArguments();
         $reflection = new \ReflectionClass($definition->getFullClassName());
 		if(!$refConstructor = $reflection->getConstructor()) {
 		    $instance = $reflection->newInstance();
 		} else {
-    
     		$missingRefParameters = array();
-              
             // Convert arguments listed in definition to objects  
     	    array_walk($defParameters, function(&$parameter) {
     	        if($parameter instanceof Reference) {
@@ -358,24 +351,34 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
     
     public function addClassParameter($sParameterName, $value)
     {
-        $this->hasActiveDefinitionObject();
+        $this->requireActiveDefinitionObject();
         $this->_currentDefinition->setParameter($sParameterName, $value);
         return $this;
     }
     
+    /**
+     * Check if an active definition object is defined
+     * @return boolean Returns true in an object exists in memory, false otherwise
+     */
     private function hasActiveDefinitionObject()
     {
-        if(empty($this->_currentDefinition)) {
-            $msg = 'No current definition object in memory';
-            $this->logger->debug($msg);
-        
-            throw new RuntimeExcpetion($msg);
-        }
+        return isset($this->_currentDefinition);
     }
     
+    private function requireActiveDefinitionObject()
+    {
+        // Check if an object is active
+        if(!$this->hasActiveDefinitionObject()) {
+            // No active objects, throw exception
+            throw new RuntimeExcpetion('No current definition object in memory');            
+        }
+        // An active object exists, return true
+        return true;
+    }
+
     public function addConstructorArgument($mArgument, $index = null)
     {
-        $this->hasActiveDefinitionObject();
+        $this->requireActiveDefinitionObject();
 
         if(is_string($mArgument)) {
             if($this->isMagicParameterString($mArgument)) {
@@ -384,9 +387,7 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
                 $mArgument = $this->getMagicClassReference($mArgument);
             }
         }
-
         $this->_currentDefinition->addConstructorArgument($mArgument, $index);
-        
         return $this;
     }
     
@@ -445,7 +446,7 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
     public function addMethodCall($sMethod, array $aParameters = array(), $targetClass = null)
     {
         if(!$targetClass) {
-            $this->hasActiveDefinitionObject();
+            $this->requireActiveDefinitionObject();
             $this->_currentDefinition->addMethodCall($sMethod, $aParameters);            
         } else {
             $id = strtolower($this->getMagicClassReference($targetClass)->getName());
@@ -473,15 +474,5 @@ final class Container implements LoggerAwareInterface, ConfigAwareInterface
     public function onLoad($sMethod, array $aParameters = array())
     {
         return $this->addMethodCall($sMethod, $aParameters);
-    }
-    
-    private function hasDefinitionObject()
-    {
-        if(empty($this->_currentDefinition)) {
-            $msg = 'No current definition object in memory';
-            $this->logger->debug($msg);
-            
-            throw new RuntimeExcpetion($msg);
-        }
     }
 }
