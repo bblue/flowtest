@@ -26,13 +26,6 @@ class Flasher implements FlasherInterface, EventDispatcherAwareInterface, Logger
      */
     private $_cache = array();
 
-    public function __construct(EventDispatcher $ed, LoggerInterface $logger)
-    {
-        $this->setEventDispatcher($ed);
-        $this->setLogger($logger);
-        $this->logger->debug(__CLASS__ . ' constructed');
-    }
-    
     /**
      * Load existing flashes into memory
      * 

@@ -114,7 +114,6 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
 		          ->addMethodCall('start')		    //@todo Hva gjør jeg dersom jeg ønsker en annen session handler? Denne må kunne extendes på et vis. Tror jeg hadde dette probelmet med andre ting, mne husker ikke hvordan/om jeg løste det
 		      ->register('flashstorage', 'bblue\ruby\Component\Flasher\SessionFlasherStorage')
 		      ->register('flash', 'bblue\ruby\Component\Flasher\Flasher')//@todo: Vurdere å flytte denne til en package
-		          ->addConstructorArgument('@logger', 1)
 		          ->addMethodCall('setStorageMechanism', ['@flashstorage'])
 		      ->register('userProviderStack', 'bblue\ruby\Component\Core\UserProviderStack') //denne er generisk og trenger ikke å flyttes
 		      ->register('authStorage', 'bblue\ruby\Component\Security\AuthStorage')

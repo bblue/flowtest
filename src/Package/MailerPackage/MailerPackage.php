@@ -10,10 +10,10 @@ final class MailerPackage extends AbstractPackage
     {
         // Create a hook to retrieve the mailer
         $this->container
-            ->register('mailer', 'bblue\ruby\Package\MailerPackage\Mailer', realpath(VENDOR_PATH) . '/PHPMailer/phpmailer.php')
+            ->register('mailer', 'bblue\ruby\Package\MailerPackage\Mailer', realpath(VENDOR_PATH) . '\PHPMailer\phpmailer.php')
             ->addConstructorArgument(true)
             ->addMethodCall('isSMTP')
-            ->addMethodCall('addReplyTo', [$this->config->MAIL_SERVER_USERNAME, 'Aleksander Lanes'])
+            ->addMethodCall('addReplyTo', [$this->config->MAIL_FROM_ADDRESS, 'Aleksander Lanes'])
             ->addClassParameter('SMTPDebug', 2)
             ->addClassParameter('CharSet', 'UTF-8')
             ->addClassParameter('From', $this->config->MAIL_FROM_ADDRESS)
