@@ -62,14 +62,27 @@ final class ClassDefinition
     
     public function getMethodCalls()
     {
+        if(!$this->hasMethodCalls()) {
+            throw new  \Exception("Definition object does not have any method calls", 1);
+        }
         return $this->aMethodCalls;
     }
     
+    /**
+     * Check if the definition object has any method calls lined up
+     * @return boolean Returns true if one or more method calls are present
+     */
+    public function hasMethodCalls()
+    {
+        return !empty($this->aMethodCalls);
+    }
+
     public function addMethodCall($sMethod, array $aParameters)
     {
         $this->aMethodCalls[] = array(
             'sMethod'       => $sMethod,
             'aParameters'   => $aParameters
         );
+        return $this;
     }
 }
