@@ -9,4 +9,6 @@ interface ConfigAwareInterface
      * @param ConfigInterface $config
      */
     public function setConfig(ConfigInterface $config);
+
+    public function hasConfig();
 }
