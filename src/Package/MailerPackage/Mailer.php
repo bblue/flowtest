@@ -1,12 +1,12 @@
 <?php
 namespace bblue\ruby\Package\MailerPackage;
 
+use bblue\ruby\Component\Logger\tLoggerAware;
 use Psr\Log\LoggerAwareInterface;
-use bblue\ruby\Component\Logger\LoggerAwareTrait;
 
 final class Mailer extends \PHPMailer implements LoggerAwareInterface
 {
-    use LoggerAwareTrait; 
+    use tLoggerAware;
     
     public function send() {
         try {

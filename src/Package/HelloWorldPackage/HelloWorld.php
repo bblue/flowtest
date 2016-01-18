@@ -2,12 +2,12 @@
 
 namespace bblue\ruby\Package\HelloWorldPackage;
 
-use bblue\ruby\Component\Package\AbstractPackage;
 use bblue\ruby\Component\Container\Reference;
 use bblue\ruby\Component\Core\KernelEvent;
 use bblue\ruby\Component\EventDispatcher\Event;
-use Doctrine\ORM\EntityManager;
+use bblue\ruby\Component\Package\AbstractPackage;
 use bblue\ruby\Traits\Interpolate;
+use Doctrine\ORM\EntityManager;
 
 final class HelloWorld extends AbstractPackage
 {
@@ -66,7 +66,7 @@ final class HelloWorld extends AbstractPackage
     		});
     	});
     	
-    	/** Add function to twig  @todo: Denne er kun et eksempel, dette burde være en egen package sannsynligvis */
+    	/** Add function to twig  @todo: Denne er kun et eksempel, dette burde vï¿½re en egen package sannsynligvis */
     	$this->eventDispatcher->addListener('package.twig.loaded', function(Event $event)  {
     	    
     	    // md5 filter
@@ -104,19 +104,19 @@ final class HelloWorld extends AbstractPackage
     private function registerModules()
     {
 	    $this->container
-	        ->register('controllers.myController', 'bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\MyController')
-	        ->addConstructorArgument(new Reference('request'))
-	    	->register('views.HelloWorldView', 'bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\HelloWorldView')
-	    	->addConstructorArgument(new Reference('response'))
-	    	->addConstructorArgument(new Reference('request'))
-	    	->addMethodCall('setTwig', [new Reference('twig')]);
+			->register('bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\MyController', 'controllers.myController')
+			->addConstructorParameter(new Reference('request'))
+			->register('views.HelloWorldView', 'bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\HelloWorldView')
+			->addConstructorParameter(new Reference('response'))
+			->addConstructorParameter(new Reference('request'))
+			->addConstructorCallback('setTwig', [new Reference('twig')]);
 
 	    $this->container
-		    ->register('controllers.errorController', 'bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorController')
-		    ->addConstructorArgument(new Reference('request'))
-		    ->register('views.ErrorView', 'bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorView')
-		    ->addConstructorArgument(new Reference('response'))
-		    ->addConstructorArgument(new Reference('request'))
-		    ->addMethodCall('setTwig', [new Reference('twig')]);
+			->register('bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorController', 'controllers.errorController')
+			->addConstructorParameter(new Reference('request'))
+			->register('views.ErrorView', 'bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorView')
+			->addConstructorParameter(new Reference('response'))
+			->addConstructorParameter(new Reference('request'))
+			->addConstructorCallback('setTwig', [new Reference('twig')]);
     }
 }

@@ -2,19 +2,18 @@
 
 namespace bblue\ruby\Package\DatabasePackage;
 
-use bblue\ruby\Component\Package\AbstractPackage;
-use Doctrine\ORM\Tools\Setup;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Configuration;
-use bblue\ruby\Package\HelloWorldPackage\Entities\Product;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use bblue\ruby\Component\Autoloader\Psr4ClassLoader;
-use bblue\ruby\Component\Core\FrontControllerEvent;
 use bblue\ruby\Component\Core\DispatcherEvent;
+use bblue\ruby\Component\Core\FrontControllerEvent;
 use bblue\ruby\Component\EventDispatcher\Event;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
+use bblue\ruby\Component\Package\AbstractPackage;
+use bblue\ruby\Package\HelloWorldPackage\Entities\Product;
 use Doctrine\Common\EventManager;
+use Doctrine\Common\Proxy\AbstractProxyFactory;
+use Doctrine\ORM\Configuration;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 
 final class Doctrine extends AbstractPackage
 {
@@ -28,16 +27,21 @@ final class Doctrine extends AbstractPackage
     private $options = array(
         'iMaxBatchSize'     => 20
     );
-    
+
+	public function addPaths(array $aPaths = [])
+	{
+		$this->driverImpl->addPaths($aPaths);
+	}
+
 	public function boot()
 	{
 		$this->initializeDoctrine();
-		
+
 		// Add listener to track flush requirements
 		$this->eventDispatcher->addListener(DoctrineEvent::SCHEDULE_FLUSH, function(Event $event){
 		    $this->iFlushCounter++;
 		    $this->logger->info('Doctrine flush scheduled. Flush count is now ' . $this->iFlushCounter);
-		    
+
 		    $aConfig = isset($this->config->doctrine) ? $this->config->doctrine : array();
 		    $iMaxBatchSize = !empty($aConfig['iMaxBatchSize']) ? $aConfig['iMaxBatchSize'] : $this->options['iMaxBatchSize'];
 
@@ -46,56 +50,58 @@ final class Doctrine extends AbstractPackage
                 $this->entityManager->flush();
 		    }
 		});
-		
+
         $this->eventDispatcher->addListener(DispatcherEvent::CONTROLLER_SUCCESS, function(Event $event){
             if($this->iFlushCounter > 0) {
                     $this->logger->info('Flusing doctrine');
                     $this->entityManager->flush();
-                    $this->entityManager->clear(); // Detaches all objects from Doctrine! @todo Hvorfor gjøre jeg dette? Skaper ikke dette bare masse probelmer??
+                    $this->entityManager->clear(); // Detaches all objects from Doctrine! @todo Hvorfor gjï¿½re jeg dette? Skaper ikke dette bare masse probelmer??
             }
         });
-        
+
         $this->eventDispatcher->addListener(FrontControllerEvent::CAUGHT_EXCEPTION, function(Event $event){
             $iUnitOfWorkSize = $this->entityManager->getUnitOfWork()->size();
             if($iUnitOfWorkSize > 0) {
                 $this->logger->info('Exception identified. Clearing doctrine unit of work for a total of ' . $iUnitOfWorkSize . ' managed entries.');
-                $this->entityManager->clear();   
-            }
+				$this->entityManager->clear();
+			}
         });
         return true;
 	}
 	
 	/**
-	 * @todo bygge inn støtte for event listener/subscriper på dette nivået
+	 * @todo bygge inn stï¿½tte for event listener/subscriper pï¿½ dette nivï¿½et
 	 */
 	public function initializeDoctrine()
-	{	
-	    $config = new Configuration();
-	    
-	    if (!$this->config->isDevMode()) {
+	{
+		$config = new Configuration();
+
+		if (!$this->config->isDevMode()) {
 	        $cache = new \Doctrine\Common\Cache\ArrayCache;
 	        $config->setAutoGenerateProxyClasses(AbstractProxyFactory::AUTOGENERATE_ALWAYS);
 	    } else {
 	        $cache = new \Doctrine\Common\Cache\ArrayCache();
 	        $config->setAutoGenerateProxyClasses(AbstractProxyFactory::AUTOGENERATE_NEVER);
 	    }
-	    
-	    // Set up caches
+
+		// Set up caches
 	    $config->setMetadataCacheImpl($cache);
-	    $config->setQueryCacheImpl($cache); 
-	    $driverImpl = $config->newDefaultAnnotationDriver(); /** @var AnnotationDriver $driverImpl */
+		$config->setQueryCacheImpl($cache);
+		$driverImpl = $config->newDefaultAnnotationDriver();
+		/** @var AnnotationDriver $driverImpl */
 	    $config->setMetadataDriverImpl($driverImpl);
-	    
-	    // Set up the logger
+
+		// Set up the logger
 	    $config->setSQLLogger(new DoctrineLogger($this->logger));
-	    
-	    // Set up the event manager
+
+		// Set up the event manager
 	    $em = new EventManager();
 	    $em->addEventListener(Events::onFlush, function () {
-	       $this->eventDispatcher->dispatch(DoctrineEvent::FLUSHED); 
-	    });
-	    
-	    $sProxyCachePath = '../cache/doctrine_proxy_cache'; /** @var Psr4ClassLoader $loader */
+			$this->eventDispatcher->dispatch(DoctrineEvent::FLUSHED);
+		});
+
+		$sProxyCachePath = '../cache/doctrine_proxy_cache';
+		/** @var Psr4ClassLoader $loader */
 	    $loader = $this->container->get('classLoader');
 	    $loader->addNamespace('Proxies', $sProxyCachePath);
 	    $config->setProxyNamespace('Proxies');
@@ -109,15 +115,10 @@ final class Doctrine extends AbstractPackage
 		    'host'       => $this->config->db_host,
 			'dbname'     => $this->config->db_name,
 		);
-		
+
 		$this->entityManager = EntityManager::create($dbParams, $config);
 
 		// Store the entity mananger to the container
-		$this->container->set($this->entityManager, 'entityManager');
-	}
-	
-	public function addPaths(array $aPaths = array())
-	{
-	    $this->driverImpl->addPaths($aPaths);
+		$this->container->register($this->entityManager, 'entityManager');
 	}
 }

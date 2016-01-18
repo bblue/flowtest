@@ -1,11 +1,12 @@
 <?php
 namespace bblue\ruby\Package\LoggerPackage;
 
-use DateTime;
-use RuntimeException;
-use psr\Log\AbstractLogger;
 use bblue\ruby\Component\Logger\iLogLevelThreshold;
 use bblue\ruby\Component\Logger\LogLevel;
+use bblue\ruby\Traits\PathNormalizer;
+use DateTime;
+use psr\Log\AbstractLogger;
+use RuntimeException;
 
 /**
  * Built on KLogger by Kenny Katzgrau <katzgrau@gmail.com>
@@ -16,7 +17,7 @@ use bblue\ruby\Component\Logger\LogLevel;
 
 final class FileLogger extends AbstractLogger implements iLogLevelThreshold
 {
-    use \bblue\ruby\Traits\PathNormalizer;
+    use PathNormalizer;
     
     private $sClientAddress;
     
@@ -54,10 +55,9 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
 
     /**
      * Class constructor
-     *
-     * @param string  $logDirectory       File path to the logging directory
-     * @param integer $logLevelThreshold  The LogLevel Threshold
-     * @return void
+     * @param string     $logDirectory      File path to the logging directory
+     * @param int|string $logLevelThreshold The LogLevel Threshold
+     * @param string     $sClientAddress
      * @todo pass options as array
      */
     public function __construct($logDirectory, $logLevelThreshold = LogLevel::DEBUG, $sClientAddress = 'unidentified')
@@ -89,6 +89,16 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
     }
 
     /**
+     * Sets the Log Level Threshold
+     * @param $logLevelThreshold
+     * @internal param string $dateFormat Valid format string for date()
+     */
+    public function setLogLevelThreshold($logLevelThreshold)
+    {
+        $this->logLevelThreshold = $logLevelThreshold;
+    }
+
+    /**
      * Class destructor
      */
     public function __destruct()
@@ -98,27 +108,7 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
             fclose($this->fileHandle);
         }
     }
-
-    /**
-     * Sets the Log Level Threshold
-     *
-     * @param string $dateFormat Valid format string for date()
-     */
-    public function setLogLevelThreshold($logLevelThreshold)
-    {
-        $this->logLevelThreshold = $logLevelThreshold;
-    }
        
-    /**
-     * Sets the date format used by all instances
-     * 
-     * @param string $dateFormat Valid format string for date()
-     */
-    public function setDateFormat($dateFormat)
-    {
-        $this->dateFormat = $dateFormat;
-    }
-
     /**
      * Logs with an arbitrary level.
      *
@@ -136,22 +126,10 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
         $message = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $this->formatMessage($message, $context)); // Remove empty lines
         $this->write($message);
     }
-        
-    /**
-     * Writes a line to the log without prepending a status or timestamp
-     *
-     * @param string $line Line to write to the log
-     * @return void
-     */
-    private function write($message)
+
+    private function setLevel($sLevel)
     {
-        if (!is_null($this->fileHandle)) {
-            if (fwrite($this->fileHandle, $message) === false) {
-                throw new RuntimeException('The file could not be written to. Check that appropriate permissions have been set.');
-            }
-        }
-        empty($this->aTags);
-        $this->aTags = array();
+        $this->level = strtoupper($sLevel);
     }
 
     /**
@@ -171,25 +149,18 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
     }
 
     /**
-     * Gets the correctly formatted Date/Time for the log entry.
-     * 
-     * PHP DateTime is dump, and you have to resort to trickery to get microseconds
-     * to work correctly, so here it is.
-     * 
+     * Indents the given string with the given indent.
+     * @param  string $string The string to indent
+     * @param  string $indent What to use as the indent.
      * @return string
      */
-    private function getTimestamp()
+    private function indent($string, $indent = '    ')
     {
-        $originalTime = microtime(true);
-        $micro = sprintf("%06d", ($originalTime - floor($originalTime)) * 1000000);
-        $date = new DateTime(date('Y-m-d H:i:s.'.$micro, $originalTime));
-
-        return $date->format($this->dateFormat);
+        return $indent . str_replace("\n", "\n" . $indent, $string);
     }
 
     /**
      * Takes the given context and coverts it to a string.
-     * 
      * @param  array $context The Context
      * @return string
      */
@@ -197,6 +168,7 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
     {
         $export = '';
         foreach ($context as $key => $value) {
+            var_dump($value);
             $export .= "{$key}: ";
             $export .= preg_replace(array(
                 '/=>\s+([a-zA-Z])/im',
@@ -212,35 +184,58 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
         return str_replace(array('\\\\', '\\\''), array('\\', '\''), rtrim($export));
     }
 
-    /**
-     * Indents the given string with the given indent.
-     * 
-     * @param  string $string The string to indent
-     * @param  string $indent What to use as the indent.
-     * @return string
-     */
-    private function indent($string, $indent = '    ')
-    {
-        return $indent.str_replace("\n", "\n".$indent, $string);
-    }
-    
     private function addPrefixToNewLine($string, $prefix = '')
     {
-        return $prefix.str_replace("\n", "\n".$prefix, $string); 
+        return $prefix . str_replace("\n", "\n" . $prefix, $string);
     }
-    
+
     private function prefix()
     {
        return "[{$this->getTimestamp()}] [{$this->sClientAddress}] [{$this->getLevel()}] " . ((!empty($this->aTags)) ? implode(' ', $this->aTags) . ' ' : '');
     }
-    
+
+    /**
+     * Gets the correctly formatted Date/Time for the log entry.
+     * PHP DateTime is dump, and you have to resort to trickery to get microseconds
+     * to work correctly, so here it is.
+     * @return string
+     */
+    private function getTimestamp()
+    {
+        $originalTime = microtime(true);
+        $micro = sprintf("%06d", ($originalTime - floor($originalTime)) * 1000000);
+        $date = new DateTime(date('Y-m-d H:i:s.' . $micro, $originalTime));
+
+        return $date->format($this->dateFormat);
+    }
+
     private function getLevel()
     {
         return $this->level;
     }
-    
-    private function setLevel($sLevel)
+
+    /**
+     * Writes a line to the log without preceding a status or timestamp
+     * @param $message
+     * @internal param string $line Line to write to the log
+     */
+    private function write($message)
     {
-        $this->level = strtoupper($sLevel);
+        if (!is_null($this->fileHandle)) {
+            if (fwrite($this->fileHandle, $message) === false) {
+                throw new RuntimeException('The file could not be written to. Check that appropriate permissions have been set.');
+            }
+        }
+        empty($this->aTags);
+        $this->aTags = [];
+    }
+
+    /**
+     * Sets the date format used by all instances
+     * @param string $dateFormat Valid format string for date()
+     */
+    public function setDateFormat($dateFormat)
+    {
+        $this->dateFormat = $dateFormat;
     }
 }

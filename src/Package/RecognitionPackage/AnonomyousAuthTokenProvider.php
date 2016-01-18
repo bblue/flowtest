@@ -1,19 +1,17 @@
 <?php
 namespace bblue\ruby\Package\RecognitionPackage;
 
-use Psr\Log\LoggerAwareInterface;
-use bblue\ruby\Component\Logger\LoggerAwareTrait;
-use bblue\ruby\Entities\Guest;
-use bblue\ruby\Component\Security\Auth;
-use bblue\ruby\Component\EventDispatcher\Event;
-use bblue\ruby\Component\Security\aAuthTokenProvider;
-use bblue\ruby\Component\Security\AuthTokenFactory;
 use bblue\ruby\Component\Core\AbstractRequest;
 use bblue\ruby\Component\Core\iUserProvider;
+use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Security\aAuthTokenProvider;
+use bblue\ruby\Component\Security\AuthTokenFactory;
+use bblue\ruby\Entities\Guest;
+use Psr\Log\LoggerAwareInterface;
 
 final class AnonomyousAuthTokenProvider extends aAuthTokenProvider implements LoggerAwareInterface
 {
-    use LoggerAwareTrait;
+    use tLoggerAware;
     
     /**
      * The login service to enable logging in

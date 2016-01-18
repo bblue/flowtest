@@ -1,24 +1,24 @@
 <?php
 namespace bblue\ruby\Component\Core;
 
-use bblue\ruby\Component\Router\Route;
 use bblue\ruby\Component\Container\ContainerAwareInterface;
 use bblue\ruby\Component\Container\ContainerAwareTrait;
-use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
-use bblue\ruby\Component\HttpFoundation\Response;
+use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
 use bblue\ruby\Component\HttpFoundation\RedirectResponse;
+use bblue\ruby\Component\HttpFoundation\Response;
+use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Router\Route;
 use Psr\Log\LoggerAwareInterface;
-use bblue\ruby\Component\Logger\LoggerAwareTrait;
 
 final class ModuleDispatcher implements ContainerAwareInterface, EventDispatcherAwareInterface, LoggerAwareInterface
 {
 	use ContainerAwareTrait;
 	use EventDispatcherAwareTrait;
-	use LoggerAwareTrait;
+	use tLoggerAware;
 
 	/**
-	 * @todo Denne må det ryddes i, mye!
+	 * @todo Denne mï¿½ det ryddes i, mye!
 	 * @param Route $route
 	 * @throws \RuntimeException
 	 * @return Ambigous <\bblue\ruby\Component\HttpFoundation\Response, \bblue\ruby\Component\HttpFoundation\RedirectResponse>
@@ -39,7 +39,7 @@ final class ModuleDispatcher implements ContainerAwareInterface, EventDispatcher
 		
 		if($response instanceof Response) {
 		    $this->eventDispatcher->dispatch(DispatcherEvent::CONTROLLER_SUCCESS, ['response'=>$response]);
-			$this->container->set($response, 'response');
+			$this->container->register($response, 'response');
 		} else {
 			throw new \RuntimeException('Controller must return a response object');
 		}
@@ -63,7 +63,7 @@ final class ModuleDispatcher implements ContainerAwareInterface, EventDispatcher
 		    }
 		    
 		    $this->eventDispatcher->dispatch(DispatcherEvent::VIEW_SUCCESS, ['response'=>$response]);
-		    $this->container->set($response, 'response');
+			$this->container->register($response, 'response');
 		} else {
 		    throw new \RuntimeException('View must return a response object');
 		}

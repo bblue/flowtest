@@ -1,11 +1,11 @@
 <?php
 namespace bblue\ruby\Package\RecognitionPackage;
 
+use bblue\ruby\Component\Core\AbstractRequest;
+use bblue\ruby\Component\Core\iUserProvider;
+use bblue\ruby\Component\Logger\tLoggerAware;
 use bblue\ruby\Package\RecognitionPackage\Modules\User\Forms\LoginForm;
 use Psr\Log\LoggerAwareInterface;
-use bblue\ruby\Component\Logger\LoggerAwareTrait;
-use bblue\ruby\Component\Core\iUserProvider;
-use bblue\ruby\Component\Core\AbstractRequest;
 
 /**
  * Class to provide native username/password login capabilites
@@ -17,7 +17,7 @@ use bblue\ruby\Component\Core\AbstractRequest;
  */
 final class NativeLogin implements LoggerAwareInterface
 {
-    use LoggerAwareTrait;
+    use tLoggerAware;
 
     /**
      * A user provider
@@ -78,7 +78,7 @@ final class NativeLogin implements LoggerAwareInterface
                 throw new InvalidCredentialsException('Invalid password');
             }
             // All checks passed. Proceed with login
-            return $this->loginService->login($this->loginService->createToken($user)); //@todo kalles finally når jeg returnerer her?
+            return $this->loginService->login($this->loginService->createToken($user)); //@todo kalles finally nï¿½r jeg returnerer her?
         } catch (InvalidCredentialsException $e) {
             $form->setError(LoginForm::USERNAME_OR_PASSWORD_ERROR);
             $form->getElement('username')->setError();

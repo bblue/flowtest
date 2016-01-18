@@ -3,21 +3,21 @@
 namespace bblue\ruby\Component\Core;
 
 use bblue\ruby\Component\Container\Container;
+use bblue\ruby\Component\EventDispatcher\EventDispatcher;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
-use bblue\ruby\Component\EventDispatcher\EventDispatcher;
-use bblue\ruby\Component\Router\Router;
-use bblue\ruby\Component\Router\Route;
-use Psr\Log\LoggerAwareInterface;
-use bblue\ruby\Component\Logger\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
 use bblue\ruby\Component\Flasher\Flasher;
+use bblue\ruby\Component\Logger\tLoggerAware;
 use bblue\ruby\Component\Module\AbstractController;
+use bblue\ruby\Component\Router\Route;
+use bblue\ruby\Component\Router\Router;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 
-final class FrontController extends AbstractController implements EventDispatcherAwareInterface, LoggerAwareInterface, FrontControllerEvent //@todo: Vurdere å fjerne frontcontrollerevent fullstendig
+final class FrontController extends AbstractController implements EventDispatcherAwareInterface, LoggerAwareInterface, FrontControllerEvent //@todo: Vurdere ï¿½ fjerne frontcontrollerevent fullstendig
 {
 	use EventDispatcherAwareTrait;
-	use LoggerAwareTrait;
+	use tLoggerAware;
 	
 	private $dispatcher;
 	private $router;
@@ -39,7 +39,7 @@ final class FrontController extends AbstractController implements EventDispatche
 
 	public function handle(AbstractRequest $request)
 	{
-	    //@todo Ikke relatert til denne klassen, men jeg må lage et containable interface for hva som kan lagres i container
+	    //@todo Ikke relatert til denne klassen, men jeg mï¿½ lage et containable interface for hva som kan lagres i container
 	    return $this->doDispatch($this->getRoute($request));        
 	}
 	
@@ -66,7 +66,7 @@ final class FrontController extends AbstractController implements EventDispatche
 		        return $this->dispatcher->dispatch($route);  
 		    } catch (\Exception $e) {
 		        // If everything failes-> route to static error page
-		        //@todo gjøre denne smartere/bedre
+		        //@todo gjï¿½re denne smartere/bedre
 		        throw new \Exception('The site encountered double exceptions. Unable to recover.');
 		    } finally {
 		        $this->logger->emergency('Error occured during route to 500 error! Unable to recover from this exception.');

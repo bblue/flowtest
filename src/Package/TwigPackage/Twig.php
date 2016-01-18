@@ -32,8 +32,8 @@ final class Twig extends AbstractPackage
 		
 		$twig->setLexer($lexer);
 		*/
-		
-		$this->container->set($twig, 'twig');
+
+		$this->container->register($twig, 'twig');
 
 		return true;
 	}

@@ -2,7 +2,7 @@
 namespace bblue\ruby\Component\Logger;
 use psr\Log\LoggerInterface;
 
-trait LoggerAwareTrait
+trait tLoggerAware
 {
     /**
      * PSR3 compliant logger

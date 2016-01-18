@@ -2,22 +2,22 @@
 
 namespace bblue\ruby\Component\Config;
 
+use bblue\ruby\Component\Logger\tLoggerAware;
 use psr\Log\LoggerAwareInterface;
 use RuntimeException;
 
 abstract class AbstractConfig implements ConfigInterface, LoggerAwareInterface
 {
-    use \bblue\ruby\Component\Logger\LoggerAwareTrait;
-    
+    use tLoggerAware;
+
+    const ENVIRONMENT_DEV = 'dev';
+    const ENVIRONMENT_PROD = 'prod';
+    const ENVIRONMENT_CLI = 'cli';
     /**
      * Internal array to store all configurationvariables
      * @var unknown
      */
     private $_aConfigParameters = array();
-    
-    const ENVIRONMENT_DEV = 'dev';
-    const ENVIRONMENT_PROD = 'prod';
-    const ENVIRONMENT_CLI = 'cli';
     
     public function __construct($sEnvironment = self::ENVIRONMENT_PROD)
     {
@@ -39,32 +39,43 @@ abstract class AbstractConfig implements ConfigInterface, LoggerAwareInterface
         $this->addConfigurationParameters($aConfig);
     }
     
-    abstract public function getProductionEnvironmentParameters();
     abstract public function getDevelopmentEnvironmentParameters();
+
+    abstract public function getProductionEnvironmentParameters();
+
     abstract public function getCliEnvironment();
     
     /**
+     * Merge configuration array with the storage
+     *
+     * @param array $aConfigParameters
+     * @return array The merged config parameters
+     */
+    protected function addConfigurationParameters(array $aConfigParameters)
+    {
+        return $this->_aConfigParameters = array_merge($this->_aConfigParameters, $aConfigParameters);
+    }
+    
+    /**
      * Magic method to retrieve configuration variables
-     * 
      * @param mixed $var
      * @return mixed|void Returns void if variable is unknown, returns the variable if set
-    */
+     */
     public function __get($var)
     {
         if (!array_key_exists($var, $this->_aConfigParameters)) {
             $message = 'Trying to retrieve missing config parameter: ' . $var;
             if (isset($this->logger)) {
-               $this->logger->debug($message);
+                $this->logger->debug($message);
             }
             throw new RuntimeException($message);
         }
-    
+
         return $this->_aConfigParameters[$var];
     }
     
     /**
      * Magic method to set configuration variables
-     * 
      * @param mixed $var
      * @return self
      */
@@ -76,23 +87,11 @@ abstract class AbstractConfig implements ConfigInterface, LoggerAwareInterface
     
     /**
      * Determines if the app is running in development mode based on the environment variable
-     * 
      * @return boolean
      */
     public function isDevMode()
     {
         return ($this->sEnvironment === self::ENVIRONMENT_DEV);
-    }
-    
-    /**
-     * Merge configuration array with the storage
-     * 
-     * @param array $aConfigParameters
-     * @return array The merged config parameters
-     */
-    protected function addConfigurationParameters(array $aConfigParameters)
-    {
-        return $this->_aConfigParameters = array_merge($this->_aConfigParameters, $aConfigParameters);
     }
     
     public function setDebugMode($mode = true)
