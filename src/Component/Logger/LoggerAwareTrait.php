@@ -18,8 +18,4 @@ trait LoggerAwareTrait
     public function setLogger(LoggerInterface $logger) {
         $this->logger = $logger;
     }
-    
-    public function hasLogger() {
-        return isset($this->logger);
-    }
 }
