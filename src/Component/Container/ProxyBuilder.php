@@ -6,16 +6,13 @@
  * Time: 13:18
  */
 
-namespace bblue\ruby\src\Component\Container;
+namespace bblue\ruby\Component\Container;
 
-
-use bblue\ruby\Component\Container\Container;
-
-class ProxyBuilder
+class ProxyBuilder implements ContainerAwareInterface
 {
-public function getTest()
-{
-    new Container($config, $logger);
-    new
-}
+    use ContainerAwareTrait;
+
+    public function buildFromReference(Reference $reference): Proxy
+    {
+    }
 }

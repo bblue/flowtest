@@ -4,85 +4,182 @@ namespace bblue\ruby\Component\Container;
 
 final class ClassDefinition
 {
-    private $aConstructorArguments = array();
-    private $aMethodCalls = array();
-    private $aParameters = array();
-    
-    public $sIncludePath = '';
-
-    private $sFullClassName;
-    private $definedBy;
-    
-    public function definedBy($definer = null)
-    {
-        if($definer) {
-            $this->definedBy = $definer;
-        } else {
-            return $this->definedBy;
-        }
-    }
-    
-    public function __construct($sFullClassName)
-    {
-        $this->sFullClassName = $sFullClassName;
-    }
-    
-    public function getFullClassName()
-    {
-        return $this->sFullClassName;
-    }
-    
-    public function setParameter($sParameterName, $value)
-    {
-        $this->aParameters[$sParameterName] = $value;
-    }
-    
-    public function getParameters()
-    {
-        return $this->aParameters;
-    }
-    
     /**
-     * @todo Rename this to constructor Params
-     * @param unknown $argument
+     * @var array
      */
-    public function addConstructorArgument($argument, $index = null)
+    private $constructorParameters = array();
+
+    /**
+     * @var array
+     */
+    private $parameters = array();
+
+    /**
+     * @var string Fully qualified class name (i.e. the class with namespace)
+     */
+    private $fqcn;
+
+    /**
+     * @var Unqualified class name (i.e. the last bit of the fqcn)
+     */
+    private $uqcn;
+
+    /**
+     * @var string
+     */
+    private $filename;
+
+    /**
+     * @var array
+     */
+    private $callbackStack = array();
+
+    /**
+     * @param string $parameterName
+     * @param        $value
+     * @return ClassDefinition
+     */
+    public function setParameter(string $parameterName, $value): self
+    {
+        $this->parameters[$parameterName] = $value;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters(): array
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * @param $parameterName
+     * @return mixed
+     */
+    public function getParameter($parameterName)
+    {
+        return $this->parameters[$parameterName];
+    }
+
+    /**
+     * @param      $parameter
+     * @param null $index
+     * @return ClassDefinition
+     */
+    public function addConstructorParameter($parameter, $index = null): self
     {
         if($index) {
-            $this->aConstructorArguments[$index] = $argument; 
+            $this->constructorParameters[$index] = $parameter;
         } else {
-            $this->aConstructorArguments[] = $argument;
+            $this->constructorParameters[] = $parameter;
         }
+        return $this;
     }
-    
-    public function getConstructorArguments()
+
+    /**
+     * @return array
+     */
+    public function getConstructorParameters(): array
     {
-        return $this->aConstructorArguments;
+        return $this->constructorParameters;
     }
-    
-    public function getMethodCalls()
+
+    /**
+     * @return array
+     */
+    public function getCallbacks(): array
     {
-        if(!$this->hasMethodCalls()) {
-            throw new  \Exception("Definition object does not have any method calls", 1);
-        }
-        return $this->aMethodCalls;
+        return $this->callbackStack;
     }
     
     /**
      * Check if the definition object has any method calls lined up
      * @return boolean Returns true if one or more method calls are present
      */
-    public function hasMethodCalls()
+    public function hasCallbacks(): bool
     {
-        return !empty($this->aMethodCalls);
+        return !empty($this->callbackStack);
     }
 
-    public function addMethodCall($sMethod, array $aParameters)
+    /**
+     * @param string $filename
+     * @return bool
+     */
+    public function hasFilename(string $filename = ''): bool
     {
-        $this->aMethodCalls[] = array(
-            'sMethod'       => $sMethod,
-            'aParameters'   => $aParameters
-        );
+        return $this->hasParameter('filename', $filename);
+    }
+
+    /**
+     * @param      $parameter
+     * @param null $value
+     * @return bool
+     */
+    private function hasParameter($parameter, $value = null): bool
+    {
+        if(isset($this->$parameter)) {
+            return (is_null($value)) ? !empty($this->$parameter) : ($this->$parameter === $value);
+        }
+        return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFilename(): string
+    {
+        return $this->filename;
+    }
+
+    /**
+     * @param string $filename
+     * @return ClassDefinition
+     */
+    public function setFilename(string $filename): self
+    {
+        $this->filename = $filename;
         return $this;
+    }
+
+    public function setFqcn(string $fqcn): self
+    {
+        $this->fqcn = $fqcn;
+        return $this;
+    }
+
+    public function hasFqcn(string $fqcn = null): bool
+    {
+        return $this->hasParameter('fqcn', $fqcn);
+    }
+
+    public function getFqcn(): string
+    {
+        return $this->fqcn;
+    }
+
+    public function addCallback($callable, array $parameters = []): self
+    {
+        if(!is_callable($callable, true)) {
+            throw new \Exception('$callable is not of correct syntax');
+        }
+        $this->callbackStack[] = [$callable,$parameters];
+        return $this;
+    }
+
+    public function setUqcn(string $uqcn): self
+    {
+        $this->uqcn = $uqcn;
+        return $this;
+    }
+
+    public function hasUqcn(string $uqcn = null): bool
+    {
+        return $this->hasParameter('uqcn', $uqcn);
+    }
+
+    public function getUqcn(): string
+    {
+        return $this->uqcn;
     }
 }
