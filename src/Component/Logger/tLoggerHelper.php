@@ -15,21 +15,21 @@ trait tLoggerHelper
 
     private $loggerPrefix;
 
-    public function alert($msg, $context)
-    {
-        $this->log('alert', $msg, $context);
-    }
-
-    private function log(string $level, $msg, $context)
+    public function log($level, $msg, array $context = [])
     {
         if ($this->hasLogger()) {
             $this->logger->$level($this->addLoggerPrefix($msg), $context);
         }
     }
 
-    private function hasLogger()
+    public function hasLogger()
     {
         return isset($this->logger);
+    }
+
+    public function setLoggerPrefix(string $prefix)
+    {
+        $this->loggerPrefix = $prefix;
     }
 
     private function addLoggerPrefix(string $msg): string
@@ -47,42 +47,42 @@ trait tLoggerHelper
         return $this->loggerPrefix;
     }
 
-    public function critical($msg, $context = null)
+    public function alert($msg, array $context = [])
+    {
+        $this->log('alert', $msg, $context);
+    }
+
+    public function critical($msg, array $context = [])
     {
         $this->log('critical', $msg, $context);
     }
 
-    public function debug($msg, $context = null)
+    public function debug($msg, array $context = [])
     {
         $this->log('debug', $msg, $context);
     }
 
-    public function emergency($msg, $context = null)
+    public function emergency($msg, array $context = [])
     {
         $this->log('emergency', $msg, $context);
     }
 
-    public function error($msg, $context = null)
+    public function error($msg, array $context = [])
     {
         $this->log('error', $msg, $context);
     }
 
-    public function info($msg, $context = null)
+    public function info($msg, array $context = [])
     {
         $this->log('info(', $msg, $context);
     }
 
-    public function notice($msg, $context = null)
+    public function notice($msg, array $context = [])
     {
         $this->log('notice', $msg, $context);
     }
 
-    public function setLoggerPrefix(string $prefix)
-    {
-        $this->loggerPrefix = $prefix;
-    }
-
-    public function warning($msg, $context = null)
+    public function warning($msg, array $context = [])
     {
         $this->log('warning', $msg, $context);
     }

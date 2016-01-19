@@ -2,7 +2,6 @@
 
 namespace bblue\ruby\Package\HelloWorldPackage;
 
-use bblue\ruby\Component\Container\Reference;
 use bblue\ruby\Component\Core\KernelEvent;
 use bblue\ruby\Component\EventDispatcher\Event;
 use bblue\ruby\Component\Package\AbstractPackage;
@@ -100,23 +99,24 @@ final class HelloWorld extends AbstractPackage
 			
     	});
     }
-    
+
+	/**@todo Denne burde jeg automatisere noe via en abstract method, interfaces og auto-wiring */
     private function registerModules()
     {
 	    $this->container
 			->register('bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\MyController', 'controllers.myController')
-			->addConstructorParameter(new Reference('request'))
-			->register('views.HelloWorldView', 'bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\HelloWorldView')
-			->addConstructorParameter(new Reference('response'))
-			->addConstructorParameter(new Reference('request'))
-			->addConstructorCallback('setTwig', [new Reference('twig')]);
+				->addConstructorParameter('@request')
+			->register('bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\HelloWorldView', 'views.HelloWorldView')
+				->addConstructorParameter('@response')
+				->addConstructorParameter('@request')
+				->addConstructorCallback('setTwig', ['@twig']);
 
 	    $this->container
 			->register('bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorController', 'controllers.errorController')
-			->addConstructorParameter(new Reference('request'))
-			->register('views.ErrorView', 'bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorView')
-			->addConstructorParameter(new Reference('response'))
-			->addConstructorParameter(new Reference('request'))
-			->addConstructorCallback('setTwig', [new Reference('twig')]);
+				->addConstructorParameter('@request')
+			->register('bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorView', 'views.ErrorView')
+				->addConstructorParameter('@response')
+				->addConstructorParameter('@request')
+				->addConstructorCallback('setTwig', ['@twig']);
     }
 }

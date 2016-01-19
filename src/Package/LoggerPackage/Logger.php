@@ -3,7 +3,6 @@
 namespace bblue\ruby\Package\LoggerPackage;
 
 use bblue\ruby\Component\Package\AbstractPackage;
-use Psr\Log\LoggerInterface;
 
 final class Logger extends AbstractPackage
 {

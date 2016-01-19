@@ -36,12 +36,14 @@ final class NativeLogin implements LoggerAwareInterface
      * @var LoginService
      */
     private $loginService;
-    
+
     /**
      * Constructor does no more than assign parameters
-     * @param LoginService $loginService
+     * @param LoginService    $loginService
+     * @param iUserProvider   $userProvider
+     * @param AbstractRequest $request
      */
-    public function __construct(LoginService $loginService, iUserProvider $userProvider, AbstractRequest $reqeust)
+    public function __construct(LoginService $loginService, iUserProvider $userProvider, AbstractRequest $request)
     {
         $this->loginService = $loginService;
         $this->userProvider = $userProvider;

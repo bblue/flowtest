@@ -168,7 +168,6 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
     {
         $export = '';
         foreach ($context as $key => $value) {
-            var_dump($value);
             $export .= "{$key}: ";
             $export .= preg_replace(array(
                 '/=>\s+([a-zA-Z])/im',
@@ -226,8 +225,6 @@ final class FileLogger extends AbstractLogger implements iLogLevelThreshold
                 throw new RuntimeException('The file could not be written to. Check that appropriate permissions have been set.');
             }
         }
-        empty($this->aTags);
-        $this->aTags = [];
     }
 
     /**

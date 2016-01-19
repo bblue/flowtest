@@ -10,6 +10,7 @@ use bblue\ruby\Component\Container\ObjectBuilder;
 use bblue\ruby\Component\Container\ProxyBuilder;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
 use bblue\ruby\Component\Logger\Psr3LoggerHandler;
+use bblue\ruby\Component\Package\iPackage;
 use bblue\ruby\Component\Router\Router;
 use psr\Log\LoggerAwareInterface;
 
@@ -103,18 +104,18 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
                 ->register($request, 'request')
                 ->register('bblue\ruby\Component\EventDispatcher\EventDispatcher', 'eventDispatcher')
                 ->register('bblue\ruby\Component\Core\SessionHandler', 'session')//@todo Denne st�tter ikke cli, jeg m� nok ha en egen boot() eller tilsvarende i kernel for CLI - slik at jeg kan sette paramtere korrekt
-                ->addConstructorCallback('start')//@todo Hva gj�r jeg dersom jeg �nsker en annen
+                    ->addConstructorCallback('start')//@todo Hva gj�r jeg dersom jeg �nsker en annen
                 // session handler? Denne m�
                 // kunne extendes p� et vis. Tror jeg hadde dette probelmet med andre ting, mne husker ikke hvordan/om jeg l�ste det
                 ->register('bblue\ruby\Component\Flasher\SessionFlasherStorage', 'flashstorage')
                 ->register('bblue\ruby\Component\Flasher\Flasher', 'flash')//@todo: Vurdere � flytte denne til en package
-                ->addConstructorCallback('setStorageMechanism', ['@flashstorage'])
+                    ->addConstructorCallback('setStorageMechanism', ['@flashstorage'])
                 ->register('bblue\ruby\Component\Core\UserProviderStack', 'userProviderStack')//denne er generisk og trenger ikke � flyttes
                 ->register('bblue\ruby\Component\Security\AuthStorage', 'authStorage')
-                ->addConstructorParameter('@userProviderStack', 2)
+                    ->addConstructorParameter('@userProviderStack', 2)
                 ->register('bblue\ruby\Component\Security\Auth', 'auth')// tror ikke auth burde flyttes. Den er vel
                 // en del av core?
-                ->addConstructorParameter(['@authStorage', $request]);
+                    ->addConstructorParameters(['@authStorage', $request]);
 
             $this->setEventDispatcher($this->container->get('eventDispatcher'));
 		    $this->initializePackages();
@@ -257,7 +258,7 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
 
     }
 
-    public function bootPackage($package)
+    public function bootPackage(iPackage $package)
     {
         if (!$package->isBooted()) {
             $this->logger->debug('Booting ' . $package->getName());
@@ -297,6 +298,7 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
         // Set up the dispatch method to handle controller dispatch
         $dispatcher = new ModuleDispatcher();
         $this->container->register($dispatcher, 'dispatcher');
+        $this->container->injectDependencies($dispatcher);
 
         $this->eventDispatcher->dispatch(KernelEvent::DISPATCHER, ['dispatcher' => $dispatcher]);
 

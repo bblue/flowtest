@@ -15,5 +15,5 @@ use Psr\Log\{
 
 interface iLoggable extends LoggerInterface, LoggerAwareInterface
 {
-
+    public function log($level, $msg, array $context = []);
 }

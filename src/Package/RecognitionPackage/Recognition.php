@@ -30,12 +30,12 @@ final class Recognition extends AbstractPackage
             ->register('bblue\ruby\Package\RecognitionPackage\VisitorService', 'VisitorService')
             ->register('bblue\ruby\Component\Security\AuthTokenFactory', 'authTokenFactory')
             ->register('bblue\ruby\Package\RecognitionPackage\NativeLogin', 'nativeLogin')
-            ->addConstructorParameter('@services.login')
-            ->addConstructorParameter('@userProviderStack')
-            ->register('services.login', 'bblue\ruby\Package\RecognitionPackage\LoginService')
-            ->addConstructorParameter('@request', 2)
-            ->addConstructorParameter('@authTokenFactory', 3)
-            ->register('GuestProvider', 'bblue\ruby\Package\RecognitionPackage\GuestProvider');
+                ->addConstructorParameter('@services.login')
+                ->addConstructorParameter('@userProviderStack')
+            ->register('bblue\ruby\Package\RecognitionPackage\LoginService', 'services.login')
+                ->addConstructorParameter('@request', 2)
+                ->addConstructorParameter('@authTokenFactory', 3)
+            ->register('bblue\ruby\Package\RecognitionPackage\GuestProvider', 'GuestProvider');
             /**->register('auth', 'bblue\ruby\Package\RecognitionPackage\AuthenticationService')
                 ->addConstructorArgument(new Reference('request'), 1)
             ->register('LoginTokenHandler', 'bblue\ruby\Package\RecognitionPackage\LoginTokenHandler')*/
@@ -66,11 +66,11 @@ final class Recognition extends AbstractPackage
     		    )));
     	});
     	/** Add a user providers to usr provider stack */
-        $this->container->addConstructorCallback('add', ['@UserService'], '@userProviderStack');
-        $this->container->addConstructorCallback('add', ['@GuestProvider'], '@userProviderStack');
+        $this->container->addConstructorCallback(['@userProviderStack', 'add'], ['@UserService'], '@userProviderStack');
+        $this->container->addConstructorCallback(['@userProviderStack', 'add'], ['@GuestProvider'], '@userProviderStack');
     	/** Register new modules */
     	$this->registerModules();
-    	/** Enable anonomyous authentication */
+    	/** Enable anonymous authentication */
     	$this->eventDispatcher->addListener(AuthEvent::NO_AUTH_TOKEN, function(Event $event) {
     	    $tokenProvider = new AnonomyousAuthTokenProvider($this->container->get('authTokenFactory'), $this->container->get('request'), $this->container->get('userProviderStack'));
     	    $event->auth->handle($tokenProvider->getToken());
@@ -83,7 +83,7 @@ final class Recognition extends AbstractPackage
         $this->container
             ->register('bblue\ruby\Package\RecognitionPackage\Modules\User\UserController', 'controllers.userController')
             ->addConstructorParameter('@request')
-            ->register('views.userView', 'bblue\ruby\Package\RecognitionPackage\Modules\User\UserView')
+            ->register('bblue\ruby\Package\RecognitionPackage\Modules\User\UserView', 'views.userView')
             ->addConstructorParameter('@response')
             ->addConstructorParameter('@request')
             ->addConstructorCallback('setTwig', ['@twig']);

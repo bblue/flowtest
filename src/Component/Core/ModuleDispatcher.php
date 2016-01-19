@@ -26,9 +26,10 @@ final class ModuleDispatcher implements ContainerAwareInterface, EventDispatcher
 	public function dispatch(Route $route)
 	{
 	    // Get the controller
-		if(!$controller = $this->container->get($route->getControllerName())) {
+		if(!$this->container->has($route->getControllerName())) {
 		    throw new \RuntimeException('Controller for route does not exist');
 		}
+		$controller = $this->container->get($route->getControllerName());
 		$this->eventDispatcher->dispatch(DispatcherEvent::CONTROLLER_LOADED, ['controller' => $controller]);
 
 		$this->logger->info('Dispatching to "' . $route->getUrl() . '/"');

@@ -17,7 +17,8 @@ use psr\Log\LoggerAwareInterface;
  * @author Aleksander Lanes
  *
  */
-abstract class AbstractPackage implements LoggerAwareInterface, ConfigAwareInterface, ContainerAwareInterface, EventDispatcherAwareInterface
+abstract class AbstractPackage implements LoggerAwareInterface, ConfigAwareInterface, ContainerAwareInterface,
+    EventDispatcherAwareInterface, iPackage
 {
     use tLoggerAware;
     use ContainerAwareTrait;

@@ -11,6 +11,7 @@ use bblue\ruby\Component\Logger\tLoggerAware;
 use bblue\ruby\Component\Module\AbstractController;
 use bblue\ruby\Component\Router\Route;
 use bblue\ruby\Component\Router\Router;
+use Exception;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 
@@ -47,7 +48,7 @@ final class FrontController extends AbstractController implements EventDispatche
 	{
 		try {
 			return $this->dispatcher->dispatch($route);			
-		} catch (\Exception $e) { // if we end up here, the error could not be handled by the controller
+		} catch (Exception $e) { // if we end up here, the error could not be handled by the controller
 		    $this->eventDispatcher->dispatch(FrontControllerEvent::CAUGHT_EXCEPTION, ['Exception'=>$e]);
 		    
 			$this->logger->critical('Unexpected exception caught by frontController ('.$e . ')');
@@ -64,10 +65,10 @@ final class FrontController extends AbstractController implements EventDispatche
 
 		    try {
 		        return $this->dispatcher->dispatch($route);  
-		    } catch (\Exception $e) {
+		    } catch (Exception $e) {
 		        // If everything failes-> route to static error page
 		        //@todo gj�re denne smartere/bedre
-		        throw new \Exception('The site encountered double exceptions. Unable to recover.');
+		        throw new Exception('The site encountered double exceptions. Unable to recover.', 0, $e);
 		    } finally {
 		        $this->logger->emergency('Error occured during route to 500 error! Unable to recover from this exception.');
 		    }
