@@ -4,6 +4,7 @@ namespace bblue\ruby\Package\RecognitionPackage;
 use bblue\ruby\Component\Core\AbstractRequest;
 use bblue\ruby\Component\Core\iUserProvider;
 use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Security\AuthException;
 use bblue\ruby\Package\RecognitionPackage\Modules\User\Forms\LoginForm;
 use Psr\Log\LoggerAwareInterface;
 

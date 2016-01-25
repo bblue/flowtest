@@ -2,12 +2,12 @@
 
 namespace bblue\ruby\Entities;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use bblue\ruby\Component\Entity\Entity;
-use bblue\ruby\Package\RecognitionPackage\Entities\UsergroupUserAssociationTrait;
-use bblue\ruby\Package\RecognitionPackage\Entities\ObserverUserAssociationTrait;
-use bblue\ruby\Package\RecognitionPackage\Entities\FollowerUserAssociationTrait;
 use bblue\ruby\Component\Security\PasswordHelper;
+use bblue\ruby\Package\RecognitionPackage\Entities\FollowerUserAssociationTrait;
+use bblue\ruby\Package\RecognitionPackage\Entities\ObserverUserAssociationTrait;
+use bblue\ruby\Package\RecognitionPackage\Entities\UsergroupUserAssociationTrait;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @Entity
@@ -15,12 +15,12 @@ use bblue\ruby\Component\Security\PasswordHelper;
  * @InheritanceType("SINGLE_TABLE")
  * @DiscriminatorColumn(name="user_type", type="string")
  * @DiscriminatorMap({"crawler" = "Crawler", "member" = "Member", "guest" = "Guest"})
- * @todo friends, followers og slikt må ikke være tilgjengelig hos en guest eller crawler. Flytte disse til Member
+ * @todo friends, followers og slikt mï¿½ ikke vï¿½re tilgjengelig hos en guest eller crawler. Flytte disse til Member
  * @todo vurdere om jeg skal lage en admin user
  **/
 abstract class User extends Entity
 {
-    use UsergroupUserAssociationTrait;//@todo Tror ikke jeg har noen effekt ut av å bruke traits her
+    use UsergroupUserAssociationTrait;//@todo Tror ikke jeg har noen effekt ut av ï¿½ bruke traits her
     use ObserverUserAssociationTrait;
     use FollowerUserAssociationTrait;
     
@@ -137,7 +137,7 @@ abstract class User extends Entity
      * @OneToOne(targetEntity="bblue\ruby\Entities\User")
      * @JoinColumn(name="sponsor_id", referencedColumnName="id")
      * @var User
-     * @todo Dette skal være one-to-many
+     * @todo Dette skal vï¿½re one-to-many
      */
     private $sponsor;
     
@@ -169,7 +169,6 @@ abstract class User extends Entity
         $this->friendsWithMe = new ArrayCollection();
         $this->myFriends = new ArrayCollection();
         
-        $this->auths = new ArrayCollection();
         $this->loginAttempts = new ArrayCollection();
     }
 
@@ -216,7 +215,7 @@ abstract class User extends Entity
     
     public function getAuthAttempts()
     {
-        //@todo: dette skal sannsynligvis være et repository med entities, slik at jeg må kalle ->count() på de som kaller metoden
+        //@todo: dette skal sannsynligvis vï¿½re et repository med entities, slik at jeg mï¿½ kalle ->count() pï¿½ de som kaller metoden
         return 0;
     }
     

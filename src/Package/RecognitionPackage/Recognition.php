@@ -2,6 +2,7 @@
 
 namespace bblue\ruby\Package\RecognitionPackage;
 
+use bblue\ruby\Component\Autoloader\Psr4ClassLoader;
 use bblue\ruby\Component\Core\DispatcherEvent;
 use bblue\ruby\Component\Core\KernelEvent;
 use bblue\ruby\Component\EventDispatcher\Event;
@@ -21,9 +22,17 @@ final class Recognition extends AbstractPackage
         // Register the entities
         $entityManager = $this->container->get('entityManager');
         $entityManager->getConfiguration()->getMetadataDriverImpl()->addPaths([__DIR__ . '\Entities']);
-        
-        $this->container->get('classLoader')->addNamespace('bblue\ruby\Entities', __DIR__ . '\Entities');
-        
+
+        /** @var Psr4ClassLoader $loader */
+        $loader = $this->container->get('classLoader');
+        $loader->addNamespace('bblue\ruby\Entities', __DIR__ . '\Entities');
+
+        /*$file = $loader->normalizeDirectoryPath(VENDOR_PATH . '\Google\identity-toolkit-php-client\src') .
+            'GitkitClient.php';
+        require $file;
+        $gitkitClient = \Gitkit_Client::createFromFile($loader->normalizeDirectoryPath('../'.APP_PATH) .
+            'gitkit-server-config.json');
+        */
         // Register the services
         $this->container
             ->register('bblue\ruby\Package\RecognitionPackage\UserService', 'UserService')

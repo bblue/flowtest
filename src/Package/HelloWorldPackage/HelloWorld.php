@@ -49,6 +49,13 @@ final class HelloWorld extends AbstractPackage
     		        'ACTION'		=> 'do500',
     		        'CAN_BYPASS_FORCED_LOGIN' => true
     		    )));
+            $event->router->addRoutes(array(
+                'users/add'	=> array(
+                    'CONTROLLER'	=> 'controllers.MyController',
+                    'VIEW'			=> 'views.HelloWorldView',
+                    'ACTION'		=> 'addUser',
+                    'CAN_BYPASS_FORCED_LOGIN' => true
+                )));
     	});
     	
     	/** Add loader instance to twig for package specific files */

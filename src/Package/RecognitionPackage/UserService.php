@@ -2,12 +2,10 @@
 
 namespace bblue\ruby\Package\RecognitionPackage;
 
-use Doctrine\ORM\EntityManager;
-use bblue\ruby\Component\EventDispatcher\EventDispatcher;
-use bblue\ruby\Package\DatabasePackage\DoctrineEvent;
 use bblue\ruby\Component\Core\iUserProvider;
-use bblue\ruby\Entities\Guest;
+use bblue\ruby\Entities\Member;
 use bblue\ruby\Entities\User;
+use Doctrine\ORM\EntityManager;
 
 final class UserService implements iUserProvider
 {
@@ -18,21 +16,15 @@ final class UserService implements iUserProvider
      */
     private $em;
     
-    /**
-     * The event dispatcher
-     * @var EventDispatcher
-     */
-    private $ed;
-    
-    public function __construct(EntityManager $em, EventDispatcher $ed)
+    public function __construct(EntityManager $em)
     {
         $this->em = $em;
-        $this->ed = $ed;
     }
-    
+
     /**
      * (non-PHPdoc)
      * @see \bblue\ruby\Component\Core\iUserProvider::getByUsername()
+     * @return User|bool|null|object
      */
     public function getByUsername($username)
     {
@@ -40,7 +32,25 @@ final class UserService implements iUserProvider
             return $user;
         }
     }
-    
+
+    public function buildMember(array $parameters)
+    {
+        $user = new Member();
+        foreach($parameters as $key => $value) {
+            $user->$key = $value;
+        }
+        return $user;
+    }
+
+    public function addUser(User $user)
+    {
+        if(!$this->assertUsernameIsAvailable($user->getUsername())) {
+            throw new \Exception('User already exists');
+        }
+        $this->em->persist($user);
+        $this->em->flush($user);
+    }
+
     /**
      * (non-PHPdoc)
      * @see \bblue\ruby\Component\Core\iUserProvider::getById()

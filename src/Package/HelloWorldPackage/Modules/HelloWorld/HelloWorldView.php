@@ -2,9 +2,8 @@
 
 namespace bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld;
 
-use bblue\ruby\Component\HttpFoundation\Response;
-use bblue\ruby\Package\TwigPackage\AbstractTwigAwareView;
 use bblue\ruby\Component\Form\Form;
+use bblue\ruby\Package\TwigPackage\AbstractTwigAwareView;
 
 class HelloWorldView extends AbstractTwigAwareView
 {
@@ -25,5 +24,10 @@ class HelloWorldView extends AbstractTwigAwareView
 	{
 	    $aUploadHandlerResonse = $this->response->getResponseData();
 	    $this->response->setOutput(json_encode($aUploadHandlerResonse));
+	}
+
+	public function addUser()
+	{
+		$this->response->setOutput('success');
 	}
 }
