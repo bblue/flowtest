@@ -39,7 +39,7 @@ trait tLoggerHelper
 
     private function hasLoggerPrefix(): bool
     {
-        return isset($this->loggerPrefix);
+        return !empty($this->loggerPrefix);
     }
 
     private function getLoggerPrefix(): string

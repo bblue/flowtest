@@ -56,6 +56,9 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
 	 */
 	public function __construct($config, $bDebug = false)
 	{
+        if(!defined('VENDOR_PATH')) {
+            throw new \Exception('Vendor path is unset');
+        }
 	    // Save the configuration instance
 	    $this->config = $config;
 	     

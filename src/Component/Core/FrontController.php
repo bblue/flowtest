@@ -40,8 +40,7 @@ final class FrontController extends AbstractController implements EventDispatche
 
 	public function handle(AbstractRequest $request)
 	{
-	    //@todo Ikke relatert til denne klassen, men jeg m� lage et containable interface for hva som kan lagres i container
-	    return $this->doDispatch($this->getRoute($request));        
+	    return $this->doDispatch($this->getRoute($request));
 	}
 	
 	private function doDispatch(Route $route)
@@ -55,7 +54,7 @@ final class FrontController extends AbstractController implements EventDispatche
 			
 		    // Attempt to show server 500 error
 		    if($route->getUrl() == Router::SERVER_500_ERROR_URL) {
-		        $this->logger->alert('Error occured during render of 500 page! Unable to show error page to visitor.');
+		        $this->logger->alert('Error occurred during render of 500 page! Unable to show error page to visitor.');
 		        throw $e;
 		    }
 		    

@@ -168,7 +168,11 @@ class Form
         }
         return array_key_exists($sElementName, $this->aElements);
     }
-    
+
+    /**
+     * @param $sElementName
+     * @return Element
+     */
     public function getElement($sElementName)
     {
         if($this->hasElement($sElementName)) {
