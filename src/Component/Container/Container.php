@@ -38,9 +38,10 @@ final class Container implements ConfigAwareInterface, iLoggable
      */
     private $activeReference;
 
-    function __construct($config, $logger, $proxyBuilder, $objectBuilder)
+    public function __construct($config, $logger, $proxyBuilder, $objectBuilder)
     {
         $this->setLogger($logger);
+        $this->setLoggerPrefix('container');
         $this->setConfig($config);
 
         $this->register($config, 'config');
@@ -257,7 +258,7 @@ final class Container implements ConfigAwareInterface, iLoggable
             return $this->getReferenceByFqcn($var);
         }
         // No matches, throw exception
-        throw new ReferenceNotFoundException('Unable to retrieve reference object ('. $var . ')',  $var);
+        throw new ReferenceNotFoundException('Unable to retrieve reference object ('. $var . ')', $var);
     }
 
     public function checkForMagic($var)
@@ -308,7 +309,7 @@ final class Container implements ConfigAwareInterface, iLoggable
     {
         $parameterName = trim($string, '%');
         if (!array_key_exists($parameterName, $this->parameters)) {
-            $this->logger->debug('Unknown parameter requested (%' . $parameterName . '%)');
+            $this->debug('Unknown parameter requested (%' . $parameterName . '%)');
         }
         return $this->parameters[$parameterName];
     }

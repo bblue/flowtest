@@ -17,6 +17,11 @@ class ObjectBuilder implements ContainerAwareInterface, iLoggable
     use ContainerAwareTrait;
     use tLoggerHelper;
 
+    public function __construct()
+    {
+        $this->setLoggerPrefix('container');
+    }
+
     /**
      * @param ClassDefinition  $definition
      * @param \ReflectionClass $reflection
