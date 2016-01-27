@@ -4,17 +4,19 @@ namespace bblue\ruby\Component\Container;
 
 use bblue\ruby\Component\Config\ConfigAwareInterface;
 use bblue\ruby\Component\Config\ConfigAwareTrait;
+use bblue\ruby\Component\Config\ConfigInterface;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
 use bblue\ruby\Component\Logger\iLoggable;
 use bblue\ruby\Component\Logger\tLoggerHelper;
 use bblue\ruby\Traits\StringHelper;
 use Exception;
 use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 
 /**
  * Class Container
- * @todo Consider creating helper classes for 1) DI, 2) autowiring, 3) Storage, 4) Search, 5) other...?
+ * @todo Consider creating helper classes for 1) DI, 2) autowiring, 4) Search, 5) other...?
  */
 final class Container implements ConfigAwareInterface, iLoggable
 {
@@ -22,13 +24,14 @@ final class Container implements ConfigAwareInterface, iLoggable
     use ConfigAwareTrait;
 
     /**
-     * @var array
+     * @var array A list of parameters stored by the container
+     * @todo This should be moved to a repository type of class
      */
     private $parameters = [];
 
     /**
-     * Array of reference objects
-     * @var Reference[]
+     * @var Reference[] Array of reference objects
+     * @todo This should be moved to a repository type of class
      */
     private $referenceObjects = [];
 
@@ -38,20 +41,42 @@ final class Container implements ConfigAwareInterface, iLoggable
      */
     private $activeReference;
 
-    public function __construct($config, $logger, $proxyBuilder, $objectBuilder)
+    /**
+     * Container constructor.
+     * @param  ConfigInterface  $config
+     * @param  LoggerInterface  $logger
+     * @param  iProxyBuilder    $proxyBuilder
+     * @param  iObjectBuilder   $objectBuilder
+     * @throws Exception
+     */
+    public function __construct(ConfigInterface $config, LoggerInterface $logger, iProxyBuilder $proxyBuilder, iObjectBuilder
+                                $objectBuilder)
     {
+        // Configure and register the logging mechanism
         $this->setLogger($logger);
         $this->setLoggerPrefix('container');
-        $this->setConfig($config);
-
-        $this->register($config, 'config');
         $this->register($logger, 'logger');
+        // Load and register the configuration file
+        $this->setConfig($config);
+        $this->register($config, 'config');
+        // Prepare the helper classes
         $this->register($proxyBuilder, 'ProxyBuilder');
-        $this->injectDependencies($objectBuilder);
         $this->register($objectBuilder, 'ObjectBuilder');
+        $this->injectDependencies($objectBuilder);
+        // Register self repository
         $this->register($this, 'container');
     }
 
+    /**
+     * The main entry method of the container. Register a class for storage.
+     *
+     * A reference object will be created and set as active for further configuration
+     *
+     * @param callable|string|object $var   The class to be stored
+     * @param string                 $alias Optional alias
+     * @return Container                    Returns self for method chaining
+     * @throws Exception
+     */
     public function register($var, string $alias = ''): self
     {
         if (is_callable($var)) {
@@ -66,6 +91,16 @@ final class Container implements ConfigAwareInterface, iLoggable
         throw new \Exception('No registration methods that can handle this request');
     }
 
+    /**
+     * Register a callable in the container
+     *
+     * The callable may use magic parameters, and therefore only the syntax is checked, not if the callable can
+     * actually be called. Provided object will create an active reference for further configuration
+     *
+     * @param           $callable
+     * @param string    $alias     An alias is required
+     * @return Container        Returns self for method chaining
+     */
     public function registerCallable($callable, string $alias): self
     {
         // Create required objects
@@ -73,7 +108,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         $reference = $this->buildReference();
         // Configure definition object
         $definition
-            ->addCallback([$this, 'injectDependencies'], [$reference]);
+            ->addConstructorCallback([$this, 'injectDependencies'], [$reference]);
         // Configure reference object
         $reference
             ->addAlias($alias)
@@ -85,13 +120,17 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Registers a class/object in the container.
+     *
+     * Provided object will create an active reference for further configuration
+     *
      * @param        $class
-     * @param string $alias
-     * @return Container
-     * @throws Exception
+     * @param string $alias If no alias is provided, the unqualified class name will be used
+     * @return Container Returns self for method chaining
      */
     private function registerClass($class, string $alias = ''): self
     {
+        // Get an alias
         $fqcn = get_class($class);
         $uqcn = StringHelper::getClassNameFromFqcn($fqcn);
         if (empty($alias)) {
@@ -104,7 +143,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         $definition
             ->setFqcn($fqcn)
             ->setUqcn($uqcn)
-            ->addCallback([$this, 'injectDependencies'], [$reference]);
+            ->addConstructorCallback([$this, 'injectDependencies'], [$reference]);
         // Configure reference object
         $reference
             ->addAlias($alias)
@@ -116,14 +155,18 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
-     * @param string $alias
+     * Register a fully qualified class name in the container
+     *
+     * Warning! The container will not check that the fqcn can be called until the class is loaded the first time
+     *
+     * @param string $alias The unqualified class name will be used as alias if no alias is provided
      * @param string $fqcn
      * @param string $filename A filename can be provided to override the autoload function
-     * @return Container
-     * @throws Exception
+     * @return Container Returns self for method chaining
      */
     private function registerFqcn(string $fqcn, string $alias = '', string $filename = ''): self
     {
+        // Get an alias
         if (empty($alias)) {
             $alias = StringHelper::getClassNameFromFqcn($fqcn);
         }
@@ -133,7 +176,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         // Configure definition object
         $definition
             ->setFqcn($fqcn)
-            ->addCallback([$this, 'injectDependencies'], [$reference]);
+            ->addConstructorCallback([$this, 'injectDependencies'], [$reference]);
         // Add filename if it is set
         if (!empty($filename)) {
             $definition->setFilename($filename);
@@ -147,26 +190,35 @@ final class Container implements ConfigAwareInterface, iLoggable
         return $this;
     }
 
+    /**
+     * Register a reference object to the container and mark it as active
+     * @param Reference $reference
+     * @return Container Return self for method chaining
+     */
     private function registerReference(Reference $reference): self
     {
         $this->addReferenceToStack($reference);
-        // Make the new reference object active
         $this->setActiveReference($reference);
-        // Return self for method chaining
         return $this;
     }
 
-    private function addReferenceToStack(Reference $reference)
+    /**
+     * Add a reference object to the stack
+     * @param Reference $reference
+     * @return bool True on success, false if reference already exists in the stack
+     */
+    private function addReferenceToStack(Reference $reference): bool
     {
         // Confirm reference is not already in stack
         if(in_array($reference, $this->referenceObjects, true)) {
-            throw new Exception('Reference object is already in stack');
+            return false;
         }
         $this->referenceObjects[] = $reference;
+        return true;
     }
 
     /**
-     * Create a new definition object. Requires a fqcn
+     * Create a new definition object
      * @return ClassDefinition
      */
     private function buildDefinition(): ClassDefinition
@@ -184,6 +236,7 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Create a new reflection object by provided fqcn
      * @param string $fqcn
      * @return ReflectionClass
      */
@@ -194,29 +247,64 @@ final class Container implements ConfigAwareInterface, iLoggable
 
     /**
      * Add a callback to a definition or callback object
+     *
      * The callback is triggered when the definition or callable is converted to a real object
+     *
      * @param       $callable
      * @param array $parameters
-     * @param null  $var
-     * @return Container|bool
-     * @throws Exception
-     * @todo Lage en atLoadingCallback som trigger når en klasse loades /i.e. get
+     * @param null  $var Optional parameter that will be converted to a reference. Defaults to null.
+     * @return Container Return self for method chaining
      */
     public function addConstructorCallback($callable, array $parameters = [], $var = null): self
     {
         // Get the definition object
         $definition = $this->getAsDefinition($var);
-        // Build the callable array if required
-        if(is_string($callable)) {
-            $callable = [$this->getAsReference($var), $callable];
-        }
-        $definition->addCallback($callable, $parameters);
+        // Build the callable array
+        $definition->addLoadingCallback($this->makeCallableArray($callable), $parameters);
         return $this;
     }
 
     /**
+     * Adds a callback to a reference
+     * The callback will be called every time the class is loaded
+     * @param       $callable
+     * @param array $parameters
+     * @param null  $var Optional parameter that will be converted to a reference. Defaults to null.
+     * @return Container
+     */
+    public function addLoadingCallback($callable, array $parameters = [], $var = null): self
+    {
+        // Get the definition object
+        $definition = $this->getAsDefinition($var);
+        // Build the callable array
+        $definition->addLoadingCallback($this->makeCallableArray($callable, $var), $parameters);
+        return $this;
+    }
+
+    /**
+     * Converts the $callable to an callable array, if possible
+     * This function enables the addCallback methods to only accept a method name, and then dynamically add the
+     * current active reference, as needed
+
+     * @param      $callable
+     * @param mixed $var Optional parameter that will be converted to a reference. Defaults to null.
+     * @return array The callable array
+     */
+    private function makeCallableArray($callable, $var = null): array
+    {
+        // The callable may just be a string (a method name). If that is the case, we add the current active
+        // reference as the object
+        if(is_string($callable)) {
+            $method = $callable;
+            $object = $this->getAsReference($var);
+            $callable = [$object, $method];
+        }
+        return $callable;
+    }
+
+    /**
      * Converts provided parameter to a reference object and returns its definition
-     * @param  string|Reference|null $var
+     * @param  mixed $var Optional parameter that will be converted to a reference. Defaults to null.
      * @return ClassDefinition
      */
     public function getAsDefinition($var = null): ClassDefinition
@@ -242,6 +330,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         if ($var === null) {
             return $this->getActiveReference();
         }
+        // If $var is any other object we throw an exception
         if (is_object($var)) {
             throw new Exception('Objects cannot be handled by getAsReference()');
         }
@@ -261,6 +350,20 @@ final class Container implements ConfigAwareInterface, iLoggable
         throw new ReferenceNotFoundException('Unable to retrieve reference object ('. $var . ')', $var);
     }
 
+    /**
+     * Alias of @this->checkForMagic
+     * @see $this->checkForMagic
+     */
+    public function convertVarToRealVar($var)
+    {
+        return $this->checkForMagic($var);
+    }
+
+    /**
+     * Try to convert a variable to its real representative variable manged by the container. IF it exists.
+     * @param mixed $var Any variable to be tested for magic
+     * @return mixed Returns the converted variable, or the variable if no conversion took place
+     */
     public function checkForMagic($var)
     {
         if (is_string($var)) {
@@ -273,13 +376,24 @@ final class Container implements ConfigAwareInterface, iLoggable
         return $var;
     }
 
+    /**
+     * Finds a reference with the fqcn, then converts the reference to a class and returns
+     * @param string $fqcn
+     * @return mixed The class/object
+     */
     public function getClassByFqcn(string $fqcn)
     {
         $reference = $this->getReferenceByFqcn($fqcn);
         return $this->getClassByReference($reference);
     }
 
-    public function setParameter($parameterName, $value)
+    /**
+     * Add a parameter to the container
+     * @param $parameterName
+     * @param $value
+     * @return Container Returns self for method chaining
+     */
+    public function addParameter($parameterName, $value): self
     {
         $this->parameters[$parameterName] = $value;
         return $this;
@@ -287,8 +401,8 @@ final class Container implements ConfigAwareInterface, iLoggable
 
     /**
      * Wrapper method around the StringHelper class for checking if a string starts and ends with %
-     *  Any string starting and ending with % will be assessed as a magic string, and the script will attempt to
-     *  substitute the variable with a value
+     * Any string starting and ending with % will be assessed as a magic string, and the script will attempt to
+     * substitute the variable with a value
      * @param mixed $var
      * @return bool
      * @internal param string $string The input string
@@ -302,14 +416,16 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Convert a string to a matching parameter stored in the container
      * @param string $string
-     * @return bool
+     * @return mixed The parameter
+     * @throws Exception If the parameter was not found
      */
-    private function getMagicParameter(string $string): bool
+    private function getMagicParameter(string $string)
     {
         $parameterName = trim($string, '%');
         if (!array_key_exists($parameterName, $this->parameters)) {
-            $this->debug('Unknown parameter requested (%' . $parameterName . '%)');
+            throw new \Exception('Requested parameter does not exist');
         }
         return $this->parameters[$parameterName];
     }
@@ -319,6 +435,7 @@ final class Container implements ConfigAwareInterface, iLoggable
      * @param mixed $var
      * @return bool
      * @internal param string $string
+     * @todo Check what happens if a reference object is stored as a parameter
      */
     private function isMagicReference($var): bool
     {
@@ -332,9 +449,10 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Check if the provided string contains a reference to a Reference object
      * @param string $string
-     * @return Reference
-     * @throws Exception
+     * @return Reference The reference, if found
+     * @throws Exception In case the string is a reference object, but does not match any stored reference objects
      */
     private function getReferenceByMagicString(string $string): Reference
     {
@@ -350,9 +468,10 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Get the reference with the provided alias
      * @param string $alias
      * @return Reference
-     * @throws Exception
+     * @throws Exception In case no reference with this alias was found
      */
     public function getReferenceByAlias(string $alias): Reference
     {
@@ -463,9 +582,10 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Return a reference object with the provided fqcn
      * @param string $fqcn
      * @return Reference
-     * @throws Exception
+     * @throws Exception In case no reference object has the fqcn
      */
     public function getReferenceByFqcn(string $fqcn): Reference
     {
@@ -486,7 +606,7 @@ final class Container implements ConfigAwareInterface, iLoggable
      * Get a definition object from a specific Reference object
      * @param  Reference $reference
      * @return ClassDefinition
-     * @throws Exception
+     * @throws Exception In case the reference has no definition object
      */
     public function getDefinitionByReference(Reference $reference): ClassDefinition
     {
@@ -498,16 +618,24 @@ final class Container implements ConfigAwareInterface, iLoggable
         return $reference->getDefinition();
     }
 
-    public function addClassParameter($parameter, $value, $var = null)
+    /**
+     * Add a parameter to the provided $var reference
+     * @param mixed     $parameter   the name of parameter
+     * @param mixed     $value       the value of the parameter
+     * @param null      $var         Optional parameter that will be converted to a reference. Defaults to null.
+     * @return Container             Return self for method chaining
+     */
+    public function addClassParameter($parameter, $value, $var = null): self
     {
         $this->getAsDefinition($var)->setParameter($parameter, $value);
         return $this;
     }
 
     /**
-     * @param array                 $parameters
-     * @param null|Reference|string $var Will be converted to a reference object
-     * @return Container
+     * Add a constructor parameter to a reference object
+     * @param array      $parameters Array of constructor parameters
+     * @param mixed      $var        Optional parameter that will be converted to a reference. Defaults to null.
+     * @return Container             Return self for method chaining
      */
     public function addConstructorParameters(array $parameters, $var = null): self
     {
@@ -519,10 +647,10 @@ final class Container implements ConfigAwareInterface, iLoggable
 
     /**
      * Add a constructor argument to a definition object
-     * @param                       $parameter
-     * @param null                  $index
-     * @param null|Reference|string $var
-     * @return Container
+     * @param mixed      $parameter The parameter to be added
+     * @param null       $index     Optional explicit index for the parameter array
+     * @param mixed      $var       Optional parameter that will be converted to a reference. Defaults to null.
+     * @return Container            Return self for method chaining
      */
     public function addConstructorParameter($parameter, $index = null, $var = null): self
     {
@@ -532,7 +660,7 @@ final class Container implements ConfigAwareInterface, iLoggable
 
     /**
      * Get a single (the first) alias of a reference object
-     * @param  string|Reference $var Any class identifier
+     * @param  mixed $var Optional parameter that will be converted to a reference. Defaults to null.
      * @return string The first element in the alias array
      */
     public function getAsAlias($var = null): string
@@ -542,9 +670,10 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
-     * @param null $var
-     * @return array
-     * @throws Exception
+     * Get the aliases stored in a reference object
+     * @param mixed $var    Optional parameter that will be converted to a reference. Defaults to null.
+     * @return array        Array of class alias
+     * @throws Exception In case the reference has no alias
      */
     public function getAlias($var = null): array
     {
@@ -560,41 +689,97 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
-     * Returns the requested class AND triggers callbacks if needed
-     * If null is passed to the function the current active reference will be used
-     * @param  string|Reference|null $var Representation of class to be returned
+     * Returns the requested class and triggers loading callbacks if needed
+
+     * @param  mixed $var Optional parameter that will be converted to a reference. Defaults to null.
      * @return object The requested class
      */
     public function getAsClass($var = null)
     {
         // Convert to reference object
         $reference = $this->getAsReference($var);
-        // Get the class by the reference and return
+        // Get the class by the reference
         $class = $this->getClassByReference($reference);
+        // Check for loading callbacks
+        $this->triggerLoadingCallbacks($reference);
         return $class;
     }
 
+    /**
+     * Return the class that has the alias provided
+     * @param string $alias
+     * @return mixed
+     */
     public function getClassByAlias(string $alias)
     {
         $reference = $this->getReferenceByAlias($alias);
         return $this->getClassByReference($reference);
     }
 
-    private function triggerCallbacks(Reference $reference)
+    /**
+     * Trigger class loading callback on the provided reference object
+     * @param Reference $reference
+     * @return bool Returns true if any callbacks was triggered, false if no callbacks triggered
+     */
+    private function triggerLoadingCallbacks(Reference $reference): bool
     {
+        // Ensure we have a class to trigger callbacks on
         if(!$reference->hasClass()) {
             $this->convertReferenceToClass($reference);
         }
+        // Check if we have a definition of the class
         if ($reference->hasDefinition()) {
-            if ($callbacks = $reference->getDefinition()->getCallbacks()) {
+            $definition = $reference->getDefinition();
+            // Trigger callbacks if the definition has any
+            if($definition->hasLoadingCallbacks()) {
+                $callbacks = $definition->getLoadingCallbacks();
                 foreach ($callbacks as $callback) {
                     $this->handleCallback($callback, $reference);
                 }
+                // Indicate one or more callbacks triggered
+                return true;
             }
         }
-        $reference->hasTriggeredCallbacks(true);
+        // Indicate no callbacks triggered
+        return false;
     }
 
+    /**
+     * Trigger class constructor callbacks on the provided reference object
+     * @param Reference $reference
+     * @return bool Returns true if any callbacks was triggered, false if no callbacks triggered
+     */
+    private function triggerConstructorCallbacks(Reference $reference): bool
+    {
+        // Ensure we have a class to trigger callbacks on
+        if(!$reference->hasClass()) {
+            $this->convertReferenceToClass($reference);
+        }
+        // Check if we have a definition of the class
+        if ($reference->hasDefinition()) {
+            $definition = $reference->getDefinition();
+            // Trigger callbacks if the definition has any
+            if($definition->hasConstructorCallbacks()) {
+                $callbacks = $definition->getConstructorCallbacks();
+                foreach ($callbacks as $callback) {
+                    $this->handleCallback($callback, $reference);
+                }
+                // Indicate one or more callbacks triggered
+                return true;
+            }
+        }
+        $reference->hasTriggeredConstructorCallbacks(true);
+        // Indicate no callbacks triggered
+        return false;
+    }
+
+    /**
+     * Trigger the specific callback provided
+     * @param array     $callback   The callback array
+     * @param Reference $reference  Reference to call callback on
+     * @return mixed                Returns the return value of the callback
+     * @throws Exception            In case no object exists to call callbacks on
+     */
     private function handleCallback(array $callback, Reference $reference)
     {
         list($callable, $parameters) = $callback;
@@ -625,7 +810,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         if($class instanceof Reference) {
             $class = $this->getClassByReference($class);
         }
-        call_user_func_array([$class, $method], $parameters);
+        return call_user_func_array([$class, $method], $parameters);
     }
 
     /**
@@ -657,7 +842,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         } elseif ($reference->hasDefinition()) {
             $reflection = $this->getReflectionByReference($reference);
             $definition = $this->getDefinitionByReference($reference);
-            $class = $this->convertDefinitionToClass($definition, $reflection);
+            $class = $this->getObjectBuilder()->buildFromDefinition($definition, $reflection);
         } else {
             throw new \Exception('Reference object does not have any valid parameters to enable class loading ('.$reference->getAlias().')');
         }
@@ -667,8 +852,8 @@ final class Container implements ConfigAwareInterface, iLoggable
         // Save the class back to the reference
         $reference->setClass($class);
         // Check if we should trigger callbacks
-        if (!$reference->hasTriggeredCallbacks()) {
-            $this->triggerCallbacks($reference);
+        if (!$reference->hasTriggeredConstructorCallbacks()) {
+            $this->triggerConstructorCallbacks($reference);
         }
         return $class;
     }
@@ -701,7 +886,7 @@ final class Container implements ConfigAwareInterface, iLoggable
 
     /**
      * Alias of $this->getAsClassOrProxy, but $var is not optional
-     * @param  string$var A fqcn string, an alias string or a magic reference.
+     * @param  string $var A fqcn string, an alias string or a magic reference.
      * @return mixed Returns the requested object
      */
     public function get(string $var)
@@ -709,6 +894,11 @@ final class Container implements ConfigAwareInterface, iLoggable
         return $this->getAsClassOrProxy($var);
     }
 
+    /**
+     * Check the container knows the alias or fqcn provided
+     * @param string $var Alias or fqcn
+     * @return bool
+     */
     public function has(string $var): bool
     {
         return ($this->isAlias($var) || $this->isFqcn($var));
@@ -716,7 +906,7 @@ final class Container implements ConfigAwareInterface, iLoggable
 
     /**
      * Returns proxy if the object is not yet loaded, otherwise it returns the object
-     * @param null|string|Reference $var
+     * @param mixed $var Optional parameter that will be converted to a reference. Defaults to null.
      * @return Proxy|mixed
      * @throws Exception
      * @todo Finish the proxy part
@@ -726,12 +916,22 @@ final class Container implements ConfigAwareInterface, iLoggable
         return $this->getAsClass($var);
     }
 
+    /**
+     * Get a proxy instead of the class itself for lazy loading capabilities
+     * @param mixed $var Optional parameter that will be converted to a reference. Defaults to null.
+     * @return Proxy
+     */
     public function getAsProxy($var = null)
     {
         $reference = $this->getAsReference($var);
         return $this->getProxyByReference($reference);
     }
 
+    /**
+     * Get the proxy for given reference object
+     * @param Reference $reference
+     * @return Proxy
+     */
     public function getProxyByReference(Reference $reference): Proxy
     {
         // Create proxy if it does not already exists
@@ -744,28 +944,21 @@ final class Container implements ConfigAwareInterface, iLoggable
         return $reference->getProxy();
     }
 
+    /**
+     * Get the proxy builder/factory
+     * @return ProxyBuilder
+     */
     private function getProxyBuilder(): ProxyBuilder
     {
         return $this->get('ProxyBuilder');
     }
 
     /**
-     * Turns definition into class via reflection object
+     * Return a reflection object based on the class definition
      * @param ClassDefinition $definition
-     * @param ReflectionClass $reflection
-     * @return object
-     * @throws Exception
+     * @return ReflectionClass
+     * @throws Exception In case no class could be loaded
      */
-    private function convertDefinitionToClass(ClassDefinition $definition, ReflectionClass $reflection)
-    {
-        $builder = $this->getObjectBuilder();
-        $class = $builder->buildFromDefinition($definition, $reflection);
-        if(!is_object($class)) {
-            throw new Exception('$this->convertReflectionToClass() did not return an object');
-        }
-        return $class;
-    }
-
     private function convertDefinitionToReflection(ClassDefinition $definition): ReflectionClass
     {
         if (!$definition->hasFqcn()) {
@@ -778,6 +971,11 @@ final class Container implements ConfigAwareInterface, iLoggable
         return $this->buildReflection($fqcn);
     }
 
+    /**
+     * Get $var as a reflection object
+     * @param mixed $var Value that can be converted to a reference object
+     * @return ReflectionClass
+     */
     public function getAsReflection($var): ReflectionClass
     {
         $reference = $this->getAsReference($var);
@@ -785,6 +983,7 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Get a reflection object by its reference
      * @param Reference $reference
      * @return ReflectionClass
      */
@@ -800,36 +999,48 @@ final class Container implements ConfigAwareInterface, iLoggable
     }
 
     /**
+     * Return all Reference objects as array
      * @return Reference[]
      */
-    public function getReferenceObjects()
+    public function getReferenceObjects(): array
     {
         return $this->referenceObjects;
     }
 
-    public function injectDependencies($target)
+    /**
+     * Inject dependencies into the provided class by the interfaces implemented by the target
+     * @param $target
+     * @return bool Returns true if anything was injected, false if nothing was injected
+     */
+    public function injectDependencies($target): bool
     {
+        $return = false;
         /** @var ConfigAwareInterface $target */
         if ($target instanceof ConfigAwareInterface) {
             if (!$target->hasConfig()) {
                 $target->setConfig($this->get('config'));
+                $return = true;
             }
         }
         /** @var ContainerAwareInterface $target */
         if ($target instanceof ContainerAwareInterface) {
             if (!$target->hasContainer()) {
                 $target->setContainer($this);
+                $return = true;
             }
         }
         /** @var LoggerAwareInterface $target */
         if ($target instanceof LoggerAwareInterface) {
             $target->setLogger($this->get('logger'));
+            $return = true;
         }
         /** @var EventDispatcherAwareInterface $target */
         if ($target instanceof EventDispatcherAwareInterface) {
             if (!$target->hasEventDispatcher()) {
                 $target->setEventDispatcher($this->get('eventDispatcher'));
+                $return = true;
             }
         }
+        return $return;
     }
 }
