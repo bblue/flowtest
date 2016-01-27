@@ -53,7 +53,7 @@ final class Reference implements iLoggable
     /**
      * @var boolean
      */
-    private $hasTriggeredCallbacks = false;
+    private $hasTriggeredConstructorCallbacks = false;
 
     public function addAlias(string $alias): self
     {
@@ -299,11 +299,11 @@ final class Reference implements iLoggable
         return $this->hasParameter('reflection', $reflection);
     }
 
-    public function hasTriggeredCallbacks(bool $boolean = null): bool
+    public function hasTriggeredConstructorCallbacks(bool $boolean = null): bool
     {
         if (!empty($boolean) && is_bool($boolean)) {
-            $this->hasTriggeredCallbacks = $boolean;
+            $this->hasTriggeredConstructorCallbacks = $boolean;
         }
-        return $this->hasTriggeredCallbacks;
+        return $this->hasTriggeredConstructorCallbacks;
     }
 }

@@ -32,7 +32,12 @@ final class ClassDefinition
     /**
      * @var array
      */
-    private $callbackStack = array();
+    private $constructorCallbackStack = array();
+
+    /**
+     * @var array
+     */
+    private $loadingCallbackStack = array();
 
     /**
      * @param string $parameterName
@@ -88,18 +93,23 @@ final class ClassDefinition
     /**
      * @return array
      */
-    public function getCallbacks(): array
+    public function getConstructorCallbacks(): array
     {
-        return $this->callbackStack;
+        return $this->constructorCallbackStack;
     }
-    
+
+    public function getLoadingCallbacks(): array
+    {
+        return $this->loadingCallbackStack;
+    }
+
     /**
      * Check if the definition object has any method calls lined up
      * @return boolean Returns true if one or more method calls are present
      */
-    public function hasCallbacks(): bool
+    public function hasConstructorCallbacks(): bool
     {
-        return !empty($this->callbackStack);
+        return !empty($this->constructorCallbackStack);
     }
 
     /**
@@ -158,13 +168,31 @@ final class ClassDefinition
         return $this->fqcn;
     }
 
-    public function addCallback($callable, array $parameters = []): self
+    public function addConstructorCallback($callable, array $parameters = []): self
+    {
+        $this->verifyCallable($callable);
+        $this->constructorCallbackStack[] = [$callable,$parameters];
+        return $this;
+    }
+
+    public function addLoadingCallback($callable, array $parameters = []): self
+    {
+        $this->verifyCallable($callable);
+        $this->constructorCallbackStack[] = [$callable,$parameters];
+        return $this;
+    }
+
+    public function hasLoadingCallbacks()
+    {
+        return !empty($this->loadingCallbackStack);
+    }
+
+    private function verifyCallable($callable): bool
     {
         if(!is_callable($callable, true)) {
             throw new \Exception('$callable is not of correct syntax');
         }
-        $this->callbackStack[] = [$callable,$parameters];
-        return $this;
+        return true;
     }
 
     public function setUqcn(string $uqcn): self

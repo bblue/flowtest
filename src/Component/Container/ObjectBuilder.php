@@ -12,7 +12,7 @@ use bblue\ruby\Component\Logger\iLoggable;
 use bblue\ruby\Component\Logger\tLoggerHelper;
 use Exception;
 
-class ObjectBuilder implements ContainerAwareInterface, iLoggable
+class ObjectBuilder implements ContainerAwareInterface, iLoggable, iObjectBuilder
 {
     use ContainerAwareTrait;
     use tLoggerHelper;
@@ -47,7 +47,7 @@ class ObjectBuilder implements ContainerAwareInterface, iLoggable
         $this->debug('Definition ('. $fqcn . ') converted to class instance');
         $aParameters = $definition->getParameters();
         foreach ($aParameters as $sParameterName => $value) {
-            $instance->$sParameterName = $value;
+            $instance->$sParameterName = $this->container->checkForMagic($value);
         }
         return $instance;
     }

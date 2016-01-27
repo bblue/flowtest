@@ -8,7 +8,7 @@
 
 namespace bblue\ruby\Component\Container;
 
-class ProxyBuilder implements ContainerAwareInterface
+class ProxyBuilder implements ContainerAwareInterface, iProxyBuilder
 {
     use ContainerAwareTrait;
 
