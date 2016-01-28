@@ -16,7 +16,7 @@ class ContainerTest extends PHPUnit_Framework_TestCase
 
     public function __construct()
     {
-        $this->container = $this->getMockBuilder('\bblue\ruby\Component\Container\Container')
+        $this->container = $this->getMockBuilder('\bblue\ruby\Component\Container\Container');
     }
 
     public function testRegisterClassWithoutAlias()
