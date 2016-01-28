@@ -15,6 +15,11 @@ use Exception;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Class FrontController
+ * Encapsulates the request/route/dispatch/response
+ * @package bblue\ruby\Component\Core
+ */
 final class FrontController extends AbstractController implements EventDispatcherAwareInterface, LoggerAwareInterface, FrontControllerEvent //@todo: Vurdere � fjerne frontcontrollerevent fullstendig
 {
 	use EventDispatcherAwareTrait;
@@ -40,13 +45,13 @@ final class FrontController extends AbstractController implements EventDispatche
 
 	public function handle(AbstractRequest $request)
 	{
-	    return $this->doDispatch($this->getRoute($request));
+	    return $this->run($this->getRoute($request));
 	}
 	
-	private function doDispatch(Route $route)
+	private function run(Route $route)
 	{
 		try {
-			return $this->dispatcher->dispatch($route);			
+			return $this->dispatcher->dispatch($route);
 		} catch (Exception $e) { // if we end up here, the error could not be handled by the controller
 		    $this->eventDispatcher->dispatch(FrontControllerEvent::CAUGHT_EXCEPTION, ['Exception'=>$e]);
 		    

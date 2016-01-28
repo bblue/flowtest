@@ -43,26 +43,24 @@ final class Container implements ConfigAwareInterface, iLoggable
 
     /**
      * Container constructor.
-     * @param  ConfigInterface  $config
-     * @param  LoggerInterface  $logger
-     * @param  iProxyBuilder    $proxyBuilder
-     * @param  iObjectBuilder   $objectBuilder
+     * @param  ConfigInterface $config
+     * @param LoggerInterface  $logger
+     * @param  iProxyBuilder   $proxyBuilder
+     * @param  iObjectBuilder  $objectBuilder
      * @throws Exception
      */
     public function __construct(ConfigInterface $config, LoggerInterface $logger, iProxyBuilder $proxyBuilder, iObjectBuilder
-                                $objectBuilder)
+    $objectBuilder)
     {
         // Configure and register the logging mechanism
-        $this->setLogger($logger);
-        $this->setLoggerPrefix('container');
         $this->register($logger, 'logger');
+        $this->setLoggerPrefix('container');
         // Load and register the configuration file
         $this->setConfig($config);
         $this->register($config, 'config');
         // Prepare the helper classes
         $this->register($proxyBuilder, 'ProxyBuilder');
         $this->register($objectBuilder, 'ObjectBuilder');
-        $this->injectDependencies($objectBuilder);
         // Register self repository
         $this->register($this, 'container');
     }
@@ -142,13 +140,14 @@ final class Container implements ConfigAwareInterface, iLoggable
         // Configure definition object
         $definition
             ->setFqcn($fqcn)
-            ->setUqcn($uqcn)
-            ->addConstructorCallback([$this, 'injectDependencies'], [$reference]);
+            ->setUqcn($uqcn);
         // Configure reference object
         $reference
             ->addAlias($alias)
             ->setDefinition($definition)
             ->setClass($class);
+        // Inject dependencies as per interfaces
+        $this->injectDependencies($class);
         // Eventually register the reference and return
         $this->registerReference($reference);
         return $this;

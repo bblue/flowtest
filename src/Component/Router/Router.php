@@ -132,8 +132,9 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 	/**
 	 * Entry method to the router. Takes a request object and checks it towards defined routes, then trigger the
 	 * dispatcher for further processing by any firewall
-	 * @param Request $request
+	 * @param AbstractRequest $request
 	 * @return Route
+	 * @throws RouteNotFoundException
 	 */
 	public function route(AbstractRequest $request)
 	{
@@ -152,15 +153,5 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 		$this->eventDispatcher->dispatch(RouterEvent::ROUTE, ['router' => $this]);
 
 		return $this->route;
-	}
-	
-	private function setController($route, $sController)
-	{
-		
-	}
-	
-	private function setControllerAction()
-	{
-		
 	}
 }
