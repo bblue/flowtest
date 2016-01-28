@@ -8,22 +8,25 @@ use bblue\ruby\Package\TwigPackage\AbstractTwigAwareView;
 class HelloWorldView extends AbstractTwigAwareView
 {
 	const MODULE_NAME = 'HelloWorld';
-	
+
+	public function commandHelloWorld()
+    {
+        
+    }
+
 	public function test()
 	{
 	    $form = new Form('testform');
 	    $form->createElement('input', 'input', 'input');
-	    
 
-	    
-		$tpl = $this->twig->loadTemplate('@'.self::MODULE_NAME.'/index.twig');
+		$tpl = $this->twig->loadTemplate('@'.self::MODULE_NAME.'/jQueryFileUplaod.twig');
 		$this->response->setOutput($tpl->render(['name' => 'Aleksander', 'age' => 29, 'form'=>$form]));
 	}
 	
 	public function fileUpload()
 	{
-	    $aUploadHandlerResonse = $this->response->getResponseData();
-	    $this->response->setOutput(json_encode($aUploadHandlerResonse));
+	    $aUploadHandlerResponse = $this->response->getResponseData();
+	    $this->response->setOutput(json_encode($aUploadHandlerResponse));
 	}
 
 	public function addUser()
