@@ -9,14 +9,10 @@ use bblue\ruby\Component\Container\Container;
  */
 class ContainerTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var Container
-     */
-    public $container;
-
-    public function __construct()
+    public function testConstructor()
     {
-        $this->container = $this->getMockBuilder('\bblue\ruby\Component\Container\Container');
+        $container = new Container();
+        $this->assertSame($container, $container->get('container'), '__construct() automatically registers itself');
     }
 
     public function testRegisterClassWithoutAlias()
