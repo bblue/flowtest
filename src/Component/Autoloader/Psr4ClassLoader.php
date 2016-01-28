@@ -161,6 +161,8 @@ class Psr4ClassLoader
 		} elseif (isset($this->sDefaultDirPath) === true) {
 			// Try to find file via default directory
 			$namespaceDirectories = array($this->sDefaultDirPath . DIRECTORY_SEPARATOR . $prefix);
+		} else {
+			$namespaceDirectories[] = '\\';
 		}
 
 		// look through base directories for this namespace prefix
