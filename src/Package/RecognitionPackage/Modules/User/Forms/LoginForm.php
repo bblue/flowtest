@@ -2,14 +2,12 @@
 
 namespace bblue\ruby\Package\RecognitionPackage\Modules\User\Forms;
 
-use bblue\ruby\Component\Form\Form;
-use bblue\ruby\Package\RecognitionPackage\UserService;
 use bblue\ruby\Component\Form\Element;
-use bblue\ruby\Traits\Interpolate;
+use bblue\ruby\Component\Form\Form;
 
 final class LoginForm extends Form
 {   
-    //@todo: Disse må endres slik at tekst og data flyttes sammen og oversettes ved behov inne i template, ikke her!
+    //@todo: Disse mï¿½ endres slik at tekst og data flyttes sammen og oversettes ved behov inne i template, ikke her!
     const USERNAME_OR_PASSWORD_ERROR = 'Username or password incorrect'; 
     const LOGIN_ATTEMPTS_EXCEEDED = 'You have used up all your login attempts and need to wait 5 minutes before attempting again';
     const REMAINING_LOGIN_ATTEMPTS = 'You have {remainingLoginAttempts} attempts remaining';
@@ -32,7 +30,7 @@ final class LoginForm extends Form
         }
         
         if(isset($aData['username'])) {
-            $this->set('username', $aData['username']);
+            $this->setUsername($aData['username']);
         }
 
         if(isset($aData['password'])) {
@@ -45,7 +43,13 @@ final class LoginForm extends Form
             $this->set($sName, true);
         }
     }
-    
+
+    public function setUsername(string $username)
+    {
+        $this->set('username', $username);
+        return $this;
+    }
+
     public function getUsername()
     {
         return $this->getElement('username')->getValue();

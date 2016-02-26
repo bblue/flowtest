@@ -9,11 +9,10 @@ trait ContainerAwareTrait
      * @var Container
      */
     public $container; //@todo: Make unpublic 
-    
+
     /**
      * Method to assign the container class
-     * 
-     * @param ContainerInterface $container
+     * @param Container $container
      */
     public function setContainer(Container $container) 
     {

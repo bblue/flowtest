@@ -9,6 +9,7 @@ use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
 use bblue\ruby\Component\Flasher\Flasher;
 use bblue\ruby\Component\Logger\tLoggerAware;
 use bblue\ruby\Component\Module\AbstractController;
+use bblue\ruby\Component\Request\iInternalRequest;
 use bblue\ruby\Component\Router\Route;
 use bblue\ruby\Component\Router\Router;
 use Exception;
@@ -24,15 +25,15 @@ final class FrontController extends AbstractController implements EventDispatche
 {
 	use EventDispatcherAwareTrait;
 	use tLoggerAware;
-	
+
 	private $dispatcher;
 	private $router;
-	
+
 	/**
 	 * @var Flasher
 	 */
 	private $flash;
-	
+
 	public function __construct(ModuleDispatcher $dispatcher, Router $router, EventDispatcher $eventDispatcher, LoggerInterface $logger, Flasher $flash, Container $container)
 	{
 		$this->dispatcher = $dispatcher;
@@ -43,26 +44,26 @@ final class FrontController extends AbstractController implements EventDispatche
 		$this->setContainer($container);
 	}
 
-	public function handle(AbstractRequest $request)
+	public function handle(iInternalRequest $request)
 	{
 	    return $this->run($this->getRoute($request));
 	}
-	
+
 	private function run(Route $route)
 	{
 		try {
 			return $this->dispatcher->dispatch($route);
 		} catch (Exception $e) { // if we end up here, the error could not be handled by the controller
 		    $this->eventDispatcher->dispatch(FrontControllerEvent::CAUGHT_EXCEPTION, ['Exception'=>$e]);
-		    
+
 			$this->logger->critical('Unexpected exception caught by frontController ('.$e . ')');
-			
+
 		    // Attempt to show server 500 error
 		    if($route->getUrl() == Router::SERVER_500_ERROR_URL) {
 		        $this->logger->alert('Error occurred during render of 500 page! Unable to show error page to visitor.');
 		        throw $e;
 		    }
-		    
+
 	        $route = $this->router
         		        ->redirect($route)
         		        ->to(Router::SERVER_500_ERROR_URL);
@@ -78,13 +79,13 @@ final class FrontController extends AbstractController implements EventDispatche
 		    }
 		}
 	}
-	
-	private function getRoute(AbstractRequest $request)
+
+	private function getRoute(iInternalRequest $request)
 	{
 	    try {
 	        return $this->router->route($request);    
 	    } catch (Exception $e) {
-	        throw new RoutingException($e->getMessage());
-	    }	
+	        throw new \Exception($e->getMessage());
+	    }
 	}
 }

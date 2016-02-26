@@ -1,9 +1,11 @@
 <?php
 namespace bblue\ruby\Component\Logger;
 
+use bblue\ruby\Component\Core\iAdapterAware;
+use bblue\ruby\Component\Core\iAdapterImplementation;
 use psr\Log\LoggerInterface;
 
-class Psr3LoggerHandler implements LoggerInterface
+class Psr3LoggerHandler implements LoggerInterface, iAdapterAware
 {  
     /**
      * Array containing logging adapters
@@ -35,23 +37,28 @@ class Psr3LoggerHandler implements LoggerInterface
         return $this->bEnabled;
     }
     
+
+    public function registerAdapter(iAdapterImplementation $adapter, string $identifier = null)
+    {
+        return $this->registerLoggerAdapter($adapter);
+    }
+
     /**
      * Register any number of psr3 loggers as adapter to this masterclass
-     * 
-     * @param LoggerInterface $adapter PSR3 compliant logger
-     * @param string $bPrepend Set to true to prepend the adapter to the start of the adapter array, making sure it is called first. Default to false = end of array
-     * @param boolean $bGetCache Determines if the log cache should be loaded into the adapter, this will log all entries prior to the adapter being set. Defaults to true.
+     * @param LoggerInterface $adapter   PSR3 compliant logger
+     * @param boolean         $bGetCache Determines if the log cache should be loaded into the adapter, this will log all entries prior to the adapter being set. Defaults to true.
+     * @param bool|string     $bPrepend  Set to true to prepend the adapter to the start of the adapter array, making sure it is called first. Default to false = end of array
      */
-    public function registerAdapter(LoggerInterface $adapter, $bGetCache = true, $bPrepend = false)
+    private function registerLoggerAdapter(LoggerInterface $adapter, $bGetCache = true, $bPrepend = false)
     {
         if ($bPrepend) {
             array_unshift($this->aLoggingAdapters, $adapter);
         } else {
             array_push($this->aLoggingAdapters, $adapter);
         }
-        
+
         if ($bGetCache) {
-        	$this->loadCache($adapter);
+            $this->loadCache($adapter);
         }
     }
 

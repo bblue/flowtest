@@ -4,28 +4,36 @@ namespace bblue\ruby\Component\Core;
 
 use bblue\ruby\Component\Autoloader\Psr4ClassLoader;
 use bblue\ruby\Component\Config\ConfigAwareInterface;
+use bblue\ruby\Component\Config\ConfigAwareTrait;
 use bblue\ruby\Component\Container\Container;
 use bblue\ruby\Component\Container\ContainerAwareInterface;
+use bblue\ruby\Component\Container\ContainerAwareTrait;
 use bblue\ruby\Component\Container\ObjectBuilder;
 use bblue\ruby\Component\Container\ProxyBuilder;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
+use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
 use bblue\ruby\Component\Logger\Psr3LoggerHandler;
+use bblue\ruby\Component\Logger\tLoggerHelper;
 use bblue\ruby\Component\Package\iPackage;
+use bblue\ruby\Component\Request\iInternalRequest;
+use bblue\ruby\Component\Request\RequestFactory;
+use bblue\ruby\Component\Request\RequestHandler;
+use bblue\ruby\Component\Response\iResponse;
 use bblue\ruby\Component\Router\Router;
 use psr\Log\LoggerAwareInterface;
 
 abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, EventDispatcherAwareInterface, ConfigAwareInterface, KernelEvent
 {
-    use \bblue\ruby\Component\Logger\tLoggerAware;
-    use \bblue\ruby\Component\Container\ContainerAwareTrait;
-    use \bblue\ruby\Component\Config\ConfigAwareTrait;
-    use \bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
+    use ContainerAwareTrait;
+    use tLoggerHelper;
+    use ConfigAwareTrait;
+    use EventDispatcherAwareTrait;
     
 	/**
      * Minimum version of PHP required to run the script
      * @var string
 	 */
-    const REQUIRED_PHP_VERSION = '5.6.0';
+    const REQUIRED_PHP_VERSION = '7.0.0';
 	/**
      * Time limit for script execution until a logger event is triggered
      * @var int
@@ -46,14 +54,13 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
 	 */
     private $loader;
 
-	/**
-	 * Constructor for Kernel
-	 *
-	 * @param string $sEnvironment Environment of system (prod or dev)
-	 * @param boolean $bDebug
-	 *
-	 * @return void
-	 */
+    /**
+     * Constructor for Kernel
+     * @param         $config
+     * @param boolean $bDebug
+     * @throws \Exception
+     * @internal param string $sEnvironment Environment of system (prod or dev)
+     */
 	public function __construct($config, $bDebug = false)
 	{
         if(!defined('VENDOR_PATH')) {
@@ -73,37 +80,38 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
 	    
         // Save logger instance to Kernel
         $this->setLogger($logger);
+        $this->setLoggerPrefix('kernel');
 	}
 	
 	public function __destruct()
 	{
 	    $this->logger->debug('Closing connection');
 	}
-	
-	/**
-	 * Method to initialize the kernel boot sequence
-	 * 
-	 * Boot() will set error reporting, confirm system is valid and set up the service locator
-	 * @return void;
-	 * @todo Flytte request over i handle, det f�les feil � ha den her
-	 * @todo Dette burde v�re bootstrap funksjonen til kernel, og dispatcher og slikt burde muligens flyttes hit fra handle()
-	 */
-	public function boot(AbstractRequest $request)
+
+    /**
+     * Method to initialize the kernel boot sequence
+     * Boot() will set error reporting, confirm system is valid and set up the service locator
+     * @param iInternalRequest $request
+     * @throws \Exception
+     * @todo Flytte request over i handle, det f�les feil � ha den her
+     * @todo Dette burde v�re bootstrap funksjonen til kernel, og dispatcher og slikt burde muligens flyttes hit fra handle()
+     */
+	public function boot(iInternalRequest $request)
 	{
 		try {
 		    $this->logger->info('****** Initializing kernel booting sequence *******');
-		    
 		    $this->initializeErrorReporting();
 		    $this->confirmPhpVersion();
 
 		    $this->logger->info('Client connected from ' . $request->getClientAddress());
 		    
 		    $this->initializeContainer();
-		    
+
 		    // @todo alle disse er vel ting som burde g� i appkernel, som deretter overstyres eller videre utbedres med packages.
 		    // @todo muligens s� kan noen av disse g� inn i constructor til enkelte components, slik som alle tingene jeg har med auth.
 		    $this->container
                 ->register($this->loader, 'classLoader')
+                ->register(new RequestHandler($this->container, new RequestFactory()), 'requestHandler')
                 ->register($request, 'request')
                 ->register('bblue\ruby\Component\EventDispatcher\EventDispatcher', 'eventDispatcher')
                 ->register('bblue\ruby\Component\Core\SessionHandler', 'session')//@todo Denne st�tter ikke cli, jeg m� nok ha en egen boot() eller tilsvarende i kernel for CLI - slik at jeg kan sette paramtere korrekt
@@ -119,13 +127,9 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
                 ->register('bblue\ruby\Component\Security\Auth', 'auth')// tror ikke auth burde flyttes. Den er vel
                 // en del av core?
                     ->addConstructorParameters(['@authStorage', $request]);
-
             $this->setEventDispatcher($this->container->get('eventDispatcher'));
 		    $this->initializePackages();
 		} catch (\Exception $e) {
-		    if($request->isCommandLineInterface()) {
-		        echo $e;
-		    }
 		    throw $e;
 		}
 	}
@@ -246,6 +250,7 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
      */
     private function initializePackages()
     {
+        $this->logExecutionTime($_SERVER['REQUEST_TIME_FLOAT']);
         // Register packages in container and obtain a reference to each
         $packages = $this->registerPackages();
         foreach ($packages as $alias => $fqcn) {
@@ -253,12 +258,12 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
             $this->container->register($fqcn, $alias)->addConstructorCallback([$this, 'bootPackage'], ['@' . $alias]);
         }
 
+        //@todo This causes double boots in case of an error
         // Load the boot file of each package
         foreach ($packages as $alias => $packageReference) {
             $alias = 'package.' . $alias;
             $this->bootPackage($this->container->get($alias));
         }
-
     }
 
     public function bootPackage(iPackage $package)
@@ -271,6 +276,7 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
                 }
             } catch (\Exception $e) {
                 $this->logger->critical('Boot failure in ' . $package->getName() . ' package', ['exception' => $e]);
+                throw $e;
             }
             $this->logger->debug($package->getName() . ' booted');
         }
@@ -283,10 +289,9 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
      * @return Response
      * @todo Vurdere om alle new statements burde handles av container. Det gj�r dependency injection lettere
      */
-    public function handle(AbstractRequest $request)
+    public function handle(iInternalRequest $request): iResponse
     {
-        $this->iStartTime = $request->_server('REQUEST_TIME_FLOAT');
-
+        $request->setRequestStartTimestamp($request->_server('REQUEST_TIME_FLOAT'));
         $this->eventDispatcher->dispatch(KernelEvent::REQUEST, ['request' => $request]);
 
         // Initialize the router mechanism
@@ -297,27 +302,24 @@ abstract class Kernel implements LoggerAwareInterface, ContainerAwareInterface, 
 
         // Dispatch the router event for extensions
         $this->eventDispatcher->dispatch(KernelEvent::ROUTER, ['router' => $router]);
-
         // Set up the dispatch method to handle controller dispatch
         $dispatcher = new ModuleDispatcher();
         $this->container->register($dispatcher, 'dispatcher');
-        $this->container->injectDependencies($dispatcher);
 
         $this->eventDispatcher->dispatch(KernelEvent::DISPATCHER, ['dispatcher' => $dispatcher]);
 
-        // Initialize the front controller to handle request and preprocessing
-        $frontController = new FrontController($dispatcher, $router, $this->eventDispatcher, $this->logger, $this->container->get('flash'), $this->container);
-        $response = $frontController->handle($request);
+        $response = $this->container->get('requestHandler')->handle($request);
 
         $this->logger->debug('Returning response to client');
-
-        $this->iEndTime = microtime(true);
-        $iExecutionTime = $this->iEndTime - $this->iStartTime;
-        $iExecutionTime = round(($iExecutionTime * 1000), 0);
-        $sLogLevel = ($iExecutionTime > self::EXECUTION_WARNING_TIME_LIMIT) ? 'warning' : 'info';
-        $this->logger->$sLogLevel('Execution time: ' . $iExecutionTime . ' ms');
+        $this->logExecutionTime($request->getExecutionTime());
 
         return $response;
+    }
+
+    private function logExecutionTime($time)
+    {
+        $sLogLevel = ($time > self::EXECUTION_WARNING_TIME_LIMIT) ? 'warning' : 'info';
+        $this->logger->$sLogLevel('Execution time: ' . $time . ' ms');
     }
 
     public function setClassLoader(Psr4ClassLoader $loader)

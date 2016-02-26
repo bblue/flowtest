@@ -11,15 +11,16 @@ use Doctrine\ORM\EntityManager;
 final class HelloWorld extends AbstractPackage
 {
     use Interpolate;
-    
-    /**
-     * @var EntityManager $entityManager
-     */
+
+	/**
+	 * @var EntityManager $entityManager
+	 * @return bool
+	 */
     public function boot()
     {
         $this->wireEventListeners(); 
         $this->registerModules();
-        
+
         return true;
     }
 
@@ -85,7 +86,7 @@ final class HelloWorld extends AbstractPackage
 			$arrToString = new \Twig_SimpleFilter('toString', function($arr) {
 			    if(is_array($arr)) {
 			        if(empty($arr)) {
-			            return;
+			            return null;
 			        } else {
 			            return implode("\n", $arr);
 			        }
@@ -112,18 +113,12 @@ final class HelloWorld extends AbstractPackage
     {
 	    $this->container
 			->register('bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\MyController', 'controllers.myController')
-				->addConstructorParameter('@request')
 			->register('bblue\ruby\Package\HelloWorldPackage\Modules\HelloWorld\HelloWorldView', 'views.HelloWorldView')
-				->addConstructorParameter('@response')
-				->addConstructorParameter('@request')
 				->addConstructorCallback('setTwig', ['@twig']);
 
 	    $this->container
 			->register('bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorController', 'controllers.errorController')
-				->addConstructorParameter('@request')
-			->register('bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorView', 'views.ErrorView')
-				->addConstructorParameter('@response')
-				->addConstructorParameter('@request')
+			->register('bblue\ruby\Package\HelloWorldPackage\Modules\Error\ErrorView', 'views.errorView')
 				->addConstructorCallback('setTwig', ['@twig']);
     }
 }

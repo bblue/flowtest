@@ -11,6 +11,8 @@
 	<div class="jumbotron" style="text-align: center;">
 		<h1>{{ sErrorHeading }}!</h1>
 		<p class="lead">{{ sErrorDescription }}</p>
+		<p class="important">{{ exception.getMessage() }} in file {{ exception.getFile() }} on line {{ exception
+            .getLine() }}</p>
 		<p>
 		  <a class="btn navbar-btn btn-xs btn-primary" href="/">Back to frontpage</a>
 		</p>

@@ -2,22 +2,15 @@
 
 namespace bblue\ruby\Component\Module;
 
-use bblue\ruby\Component\HttpFoundation\Response;
-use bblue\ruby\Component\Router\Route;
 use bblue\ruby\Component\Container\ContainerAwareInterface;
 use bblue\ruby\Component\Container\ContainerAwareTrait;
-use bblue\ruby\Component\Core\AbstractRequest;
+use bblue\ruby\Component\Request\RequestAwareTrait;
+use bblue\ruby\Component\Request\RequestHandlerAwareTrait;
+use bblue\ruby\Component\Triad\iRubyView;
 
-abstract class AbstractView implements ContainerAwareInterface
+abstract class AbstractView implements ContainerAwareInterface, iRubyView
 {
     use ContainerAwareTrait;
-    
-    protected $response;
-    protected $request;
-    
-	public function __construct(Response $response, AbstractRequest $request)
-	{
-		$this->response = $response;
-		$this->request = $request;
-	}
+    use RequestHandlerAwareTrait;
+    use RequestAwareTrait;
 }

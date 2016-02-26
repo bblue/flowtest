@@ -1,9 +1,9 @@
 <?php
 namespace bblue\ruby\Package\RecognitionPackage;
 
-use bblue\ruby\Component\Core\AbstractRequest;
 use bblue\ruby\Component\Core\iUserProvider;
 use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Request\iInternalRequest;
 use bblue\ruby\Component\Security\AuthException;
 use bblue\ruby\Package\RecognitionPackage\Modules\User\Forms\LoginForm;
 use Psr\Log\LoggerAwareInterface;
@@ -28,7 +28,7 @@ final class NativeLogin implements LoggerAwareInterface
 
     /**
      * The request object
-     * @var AbstractRequest
+     * @var iInternalRequest
      */
     private $request;
 
@@ -42,9 +42,9 @@ final class NativeLogin implements LoggerAwareInterface
      * Constructor does no more than assign parameters
      * @param LoginService    $loginService
      * @param iUserProvider   $userProvider
-     * @param AbstractRequest $request
+     * @param iInternalRequest $request
      */
-    public function __construct(LoginService $loginService, iUserProvider $userProvider, AbstractRequest $request)
+    public function __construct(LoginService $loginService, iUserProvider $userProvider, iInternalRequest $request)
     {
         $this->loginService = $loginService;
         $this->userProvider = $userProvider;
@@ -69,7 +69,7 @@ final class NativeLogin implements LoggerAwareInterface
             if(!$this->loginService->isBelowLoginAttemptThreshold($user)) {
                 $this->logger->notice('Login threshold reached for user');
                 $this->loginService->setLoginTimelock($user);
-                $form->setError('No login attempts remining. You may not log in for the next 15 minututes.');
+                $form->setError('No login attempts remaining. You may not log in for the next 15 minutes.');
                 $form->disable();
             }
             if(!$user) {

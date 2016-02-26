@@ -4,25 +4,18 @@ namespace bblue\ruby\Component\Module;
 
 use bblue\ruby\Component\Container\ContainerAwareInterface;
 use bblue\ruby\Component\Container\ContainerAwareTrait;
-use bblue\ruby\Component\Core\AbstractRequest;
 use bblue\ruby\Component\HttpFoundation\Response;
+use bblue\ruby\Component\Request\iRequestAware;
+use bblue\ruby\Component\Request\RequestAwareTrait;
+use bblue\ruby\Component\Request\RequestHandlerAwareTrait;
+use bblue\ruby\Component\Triad\iRubyController;
 
-abstract class AbstractController implements ContainerAwareInterface
+abstract class AbstractController implements ContainerAwareInterface, iRubyController, iRequestAware
 {
     use ContainerAwareTrait;
-    
-	protected $request;
-	
-	public function __construct(AbstractRequest $request)
-	{
-		$this->setRequest($request);
-	}
-	
-	public function setRequest(AbstractRequest $request)
-	{
-		$this->request = $request;
-	}
-	
+    use RequestHandlerAwareTrait;
+    use RequestAwareTrait;
+
 	/** @todo: Skrive ferdig denne */
 	protected function getResponseObject($param = null)
 	{

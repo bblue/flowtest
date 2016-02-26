@@ -2,10 +2,9 @@
 
 namespace bblue\ruby\Component\Security;
 
+use bblue\ruby\Component\Request\iInternalRequest;
 use bblue\ruby\Component\Validation\iValidationBasics;
 use bblue\ruby\Component\Validation\ValidationBasics;
-use bblue\ruby\Entities\User;
-use bblue\ruby\Component\Core\AbstractRequest;
 
 final class AuthTokenValidator implements iAuthTokenChecker, iValidationBasics
 {
@@ -16,7 +15,7 @@ final class AuthTokenValidator implements iAuthTokenChecker, iValidationBasics
 
     const MAX_UNSUCCESSFUL_AUTH_ATTEMPTS = 5;
     
-    public function __construct(iAuthToken $token, AbstractRequest $request)
+    public function __construct(iAuthToken $token, iInternalRequest $request)
     {
         $this->token = $token;
         $this->request = $request;
@@ -44,7 +43,7 @@ final class AuthTokenValidator implements iAuthTokenChecker, iValidationBasics
             throw new AuthTokenException('Client user agent does not match token user agent');
         }
         
-        // Check if token IP matches current IP @todo: Det må være murlig å skru av denne sjekken, eventuelt tillatte noe endring 
+        // Check if token IP matches current IP @todo: Det mï¿½ vï¿½re murlig ï¿½ skru av denne sjekken, eventuelt tillatte noe endring 
         if($this->token->getClientAddress() !== $this->request->getClientAddress()) {
             $this->token->isValid(false);
             throw new AuthTokenException('Client address does not match token address');
@@ -61,7 +60,7 @@ final class AuthTokenValidator implements iAuthTokenChecker, iValidationBasics
         
         // Log auth attempt
 
-        $this->_validated = true; //@todo finne ut hvorfor jeg egentlig har denne. tror det er et spøkelse
+        $this->_validated = true; //@todo finne ut hvorfor jeg egentlig har denne. tror det er et spï¿½kelse
 
         $this->token->isValid(true);
 

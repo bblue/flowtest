@@ -1,6 +1,7 @@
 <?php
 namespace bblue\ruby\Package\LoggerPackage;
 
+use bblue\ruby\Component\Core\iAdapterImplementation;
 use bblue\ruby\Component\Logger\iLogLevelThreshold;
 use bblue\ruby\Component\Logger\LogLevel;
 use bblue\ruby\Traits\PathNormalizer;
@@ -15,7 +16,7 @@ use RuntimeException;
  *
  */
 
-final class FileLogger extends AbstractLogger implements iLogLevelThreshold
+final class FileLogger extends AbstractLogger implements iLogLevelThreshold, iAdapterImplementation
 {
     use PathNormalizer;
     

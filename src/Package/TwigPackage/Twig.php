@@ -9,7 +9,7 @@ final class Twig extends AbstractPackage
 	public function boot()
 	{
 	    // Don't load twig package for cli request
-	    if($this->container->get('request')->isCommandLineInterface()) {
+	    if($this->container->get('request')->isCliRequest()) {
 	        $this->logger->debug('Twig package not required for CLI request. Aborting package boot.');
 	        return false;
 	    }
@@ -32,9 +32,7 @@ final class Twig extends AbstractPackage
 		
 		$twig->setLexer($lexer);
 		*/
-
 		$this->container->register($twig, 'twig');
-
 		return true;
 	}
 }

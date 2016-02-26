@@ -91,10 +91,7 @@ final class Recognition extends AbstractPackage
     {
         $this->container
             ->register('bblue\ruby\Package\RecognitionPackage\Modules\User\UserController', 'controllers.userController')
-            ->addConstructorParameter('@request')
             ->register('bblue\ruby\Package\RecognitionPackage\Modules\User\UserView', 'views.userView')
-            ->addConstructorParameter('@response')
-            ->addConstructorParameter('@request')
             ->addConstructorCallback('setTwig', ['@twig']);
     }
 }

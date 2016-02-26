@@ -2,7 +2,9 @@
 
 namespace bblue\ruby\Component\HttpFoundation;
 
-class RedirectResponse extends Response
+use bblue\ruby\Component\Response\iResponse;
+
+class RedirectResponse extends Response implements iResponse
 {
     private $url;
     
@@ -10,6 +12,7 @@ class RedirectResponse extends Response
 	{
 	    $this->url = $url;
 	    $this->setStatusCode($bPermanent ? 301 : 302);
+		parent::__construct();
 	}
 	
 	public function send()

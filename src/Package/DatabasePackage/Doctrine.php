@@ -8,6 +8,7 @@ use bblue\ruby\Component\Core\FrontControllerEvent;
 use bblue\ruby\Component\EventDispatcher\Event;
 use bblue\ruby\Component\Package\AbstractPackage;
 use bblue\ruby\Package\HelloWorldPackage\Entities\Product;
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
 use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Doctrine\ORM\Configuration;
@@ -76,11 +77,11 @@ final class Doctrine extends AbstractPackage
 	{
 		$config = new Configuration();
 
-		if (!$this->config->isDevMode()) {
-	        $cache = new \Doctrine\Common\Cache\ArrayCache;
+		if ($this->config->isDevMode()) {
+			$cache = new ArrayCache;
 	        $config->setAutoGenerateProxyClasses(AbstractProxyFactory::AUTOGENERATE_ALWAYS);
 	    } else {
-	        $cache = new \Doctrine\Common\Cache\ArrayCache();
+	        $cache = new ArrayCache();
 	        $config->setAutoGenerateProxyClasses(AbstractProxyFactory::AUTOGENERATE_NEVER);
 	    }
 
@@ -92,7 +93,8 @@ final class Doctrine extends AbstractPackage
 	    $config->setMetadataDriverImpl($driverImpl);
 
 		// Set up the logger
-	    $config->setSQLLogger(new DoctrineLogger($this->logger));
+	    //@todo make the sql logger optional in the config
+		//$config->setSQLLogger(new DoctrineLogger($this->logger));
 
 		// Set up the event manager
 	    $em = new EventManager();
@@ -100,7 +102,7 @@ final class Doctrine extends AbstractPackage
 			$this->eventDispatcher->dispatch(DoctrineEvent::FLUSHED);
 		});
 
-		$sProxyCachePath = '../cache/doctrine_proxy_cache';
+		$sProxyCachePath = realpath(CACHE_PATH) . '/doctrine_proxy_cache';
 		/** @var Psr4ClassLoader $loader */
 	    $loader = $this->container->get('classLoader');
 	    $loader->addNamespace('Proxies', $sProxyCachePath);

@@ -2,12 +2,11 @@
 
 namespace bblue\ruby\Component\Router;
 
-use bblue\ruby\Component\Core\AbstractRequest;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
 use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Request\iInternalRequest;
 use Psr\Log\LoggerAwareInterface;
-use URL\Normalizer;
 
 class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 {
@@ -23,13 +22,17 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 	 * @var array
 	 */
 	public $_aRouteMap = array();
+
+	/**
+	 * @var iRoute
+	 */
 	public $route;
-	
-	/** Constructor with dependencies injected 
-	 * 
+
+	/** Constructor with dependencies injected
 	 * @param EventDispatcher $eventDispatcher
-	 * @param Logger $logger
-	 * @param array $aRoutes Array with string representation of possible routes
+	 * @param Logger          $logger
+	 * @param array           $aRouteMap
+	 * @internal param array $aRoutes Array with string representation of possible routes
 	 */
 	public function __construct($eventDispatcher, $logger, array $aRouteMap)
 	{
@@ -43,7 +46,7 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 	
 	public function normalizeUrl($url)
 	{
-	    return (new Normalizer( $url ))->normalize();
+	    return strtolower(trim($url, '/'));
 	}
 	
 	public function addRoutes(array $aRoutes)
@@ -52,7 +55,12 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 	        $this->_aRouteMap[$this->normalizeUrl($url)] = $data;
 	    }
 	}
-	
+
+	/**
+	 * @todo I should redirect the request, not the route
+	 * @param $mRoute
+	 * @return $this|Router
+	 */
     public function redirect($mRoute)
     {
         if(is_object($mRoute)) {
@@ -62,7 +70,7 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
         }
     }
 	
-	public function redirectRoute(Route $route)
+	public function redirectRoute(iRoute $route)
 	{
 	    $this->route = $route;
 	    return $this;
@@ -79,7 +87,7 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 			$route = $this->buildRouteObject($url, $this->_aRouteMap[$url]);
 			return $route;
 		} else {
-			throw new RouteNotFoundException("No route handler identified for url ({$url})");
+			throw new RouteNotFoundException("No route object identified for url ({$url})");
 		}
 	}
 
@@ -132,15 +140,15 @@ class Router implements EventDispatcherAwareInterface, LoggerAwareInterface
 	/**
 	 * Entry method to the router. Takes a request object and checks it towards defined routes, then trigger the
 	 * dispatcher for further processing by any firewall
-	 * @param AbstractRequest $request
-	 * @return Route
+	 * @param iInternalRequest $request
+	 * @return iRoute
 	 * @throws RouteNotFoundException
 	 */
-	public function route(AbstractRequest $request)
+	public function route(iInternalRequest $request): iRoute
 	{
 		// Look for matching routes in route map
 		try {
-			$route = $this->getRouteByUrl($this->normalizeUrl($request->getUrl()));
+			$route = $this->getRouteByUrl($this->normalizeUrl($request->getAddress()));
 		} catch (RouteNotFoundException $e) {
 			$this->logger->warning($e->getMessage());
 			$route = $this->getRouteByUrl($this->normalizeUrl(self::SERVER_404_ERROR_URL));

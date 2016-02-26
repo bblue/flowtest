@@ -2,7 +2,7 @@
 
 namespace bblue\ruby\Component\HttpFoundation;
 
-use bblue\ruby\Component\Core\AbstractResponse;
+use bblue\ruby\Component\Response\AbstractResponse;
 
 class Response extends AbstractResponse
 {		//$this->response->minimize();
@@ -12,7 +12,7 @@ class Response extends AbstractResponse
 	private $output = '';
 	private $mResponseData;
 	
-	private $http_response_code = 200;
+	protected $http_response_code = 200;
 	
 	public function __construct($mResponseData = null)
 	{

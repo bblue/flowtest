@@ -2,11 +2,12 @@
 
 namespace bblue\ruby\Package\LoggerPackage;
 
-use psr\Log\AbstractLogger;
+use bblue\ruby\Component\Core\iAdapterImplementation;
 use bblue\ruby\Component\Logger\iLogLevelThreshold;
 use bblue\ruby\Component\Logger\LogLevel;
+use psr\Log\AbstractLogger;
 
-final class EchoLogger extends AbstractLogger implements iLogLevelThreshold
+final class EchoLogger extends AbstractLogger implements iLogLevelThreshold, iAdapterImplementation
 {
     /**
      * Current minimum logging threshold

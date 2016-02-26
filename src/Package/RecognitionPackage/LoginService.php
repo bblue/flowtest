@@ -2,9 +2,9 @@
 
 namespace bblue\ruby\Package\RecognitionPackage;
 
-use bblue\ruby\Component\Core\AbstractRequest;
 use bblue\ruby\Component\Core\SessionHandler;
 use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Request\iInternalRequest;
 use bblue\ruby\Component\Security\Auth;
 use bblue\ruby\Component\Security\AuthToken;
 use bblue\ruby\Component\Security\AuthTokenFactory;
@@ -56,7 +56,7 @@ final class LoginService implements LoggerAwareInterface
     
     /**
      * The current request object
-     * @var AbstractRequest
+     * @var iInternalRequest
      */
     private $request;
       
@@ -66,7 +66,8 @@ final class LoginService implements LoggerAwareInterface
      */
     private $session;
     
-    public function __construct(Auth $auth, EntityManager $em, AbstractRequest $request, AuthTokenFactory $tokenFactory, SessionHandler $session)
+    public function __construct(Auth $auth, EntityManager $em, iInternalRequest $request, AuthTokenFactory $tokenFactory,
+                                SessionHandler $session)
     {
         $this->auth = $auth;
         $this->_em = $em;
@@ -75,7 +76,7 @@ final class LoginService implements LoggerAwareInterface
         $this->session = $session;
     }
 
-    public function createAnonomyousToken(AbstractRequest $request = null)
+    public function createAnonomyousToken(iInternalRequest $request = null)
     {
         $request = $this->_getRequest($request);
         $token = $this->tokenFactory->buildAnonomyousToken();
@@ -84,7 +85,7 @@ final class LoginService implements LoggerAwareInterface
         return $token;
     }
 
-    private function _getRequest(AbstractRequest $request = null)
+    private function _getRequest(iInternalRequest $request = null)
     {
         if (isset($request)) {
             return $request;
@@ -93,7 +94,7 @@ final class LoginService implements LoggerAwareInterface
         }
     }
 
-    private function _prepareToken(AuthToken $token, AbstractRequest $request, User $user)
+    private function _prepareToken(AuthToken $token, iInternalRequest $request, User $user)
     {
         $token->setClientAddress($request->getClientAddress());
         $token->setUserAgent($request->getUserAgent());
@@ -106,7 +107,7 @@ final class LoginService implements LoggerAwareInterface
      * @throws \Exception
      * @return AuthToken
      */
-    public function createToken(User $user, AbstractRequest $request = null)
+    public function createToken(User $user, iInternalRequest $request = null)
     {
         $request = $this->_getRequest($request);
         $token = $this->tokenFactory->build();
@@ -120,7 +121,7 @@ final class LoginService implements LoggerAwareInterface
         return self::MAX_ALLOWED_LOGIN_ATTEMPTS;
     }
 
-    public function getRemainingLoginAttempts(User $user = null, AbstractRequest $request = null)
+    public function getRemainingLoginAttempts(User $user = null, iInternalRequest $request = null)
     {
         $request = $this->_getRequest($request);
         $user = isset($user) ? $user : $this->auth->getUser(); // @todo: make php7
@@ -128,20 +129,20 @@ final class LoginService implements LoggerAwareInterface
         return 5;
     }
 
-    public function isBelowLoginAttemptThreshold(User $user = null, AbstractRequest $request = null)
+    public function isBelowLoginAttemptThreshold(User $user = null, iInternalRequest $request = null)
     {
         $request = $this->_getRequest($request);
         // @todo
         return true;
     }
-        
+
     /**
      * Method to log in a user. An auth token is required.
      * Note that this method is only to do the actual LOGIN commands. Auth is done by the auth service.
      * @param iAuthToken $token The auth token associated with the user
-     * @param User       $user  The user to be logged in
+     * @return bool In case something bad happens
      * @throws \Exception In case something bad happens
-     * @return boolean True on success
+     * @internal param User $user The user to be logged in
      */
     public function login(iAuthToken $token)
     {
@@ -169,10 +170,10 @@ final class LoginService implements LoggerAwareInterface
     /**
      * Creates a new login attempt and associates it with the user
      * @param User            $user
-     * @param AbstractRequest $request
+     * @param iInternalRequest $request
      * @return boolean
      */
-    public function registerCurrentLoginAttempt(User $user = null, AbstractRequest $request = null)
+    public function registerCurrentLoginAttempt(User $user = null, iInternalRequest $request = null)
     {
         $request = $this->_getRequest($request);
         $loginAttempt = new LoginAttempt();
@@ -184,7 +185,7 @@ final class LoginService implements LoggerAwareInterface
         return true;
     }
 
-    public function getCurrentLoginAttempt(User $user, AbstractRequest $request = null)
+    public function getCurrentLoginAttempt(User $user, iInternalRequest $request = null)
     {
         $request = $this->_getRequest($request);
         //@todo: Get the current login attempt
@@ -207,7 +208,7 @@ final class LoginService implements LoggerAwareInterface
         return $user; //@todo: Vurdere behov for � returnere et user objekt
     }
 
-    public function setLoginTimelock(User $user = null, AbstractRequest $request = null)
+    public function setLoginTimelock(User $user = null, iInternalRequest $request = null)
     {
         $this->_getRequest($request)->setLoginTimelock(self::LOGIN_TIMELOCK);
         if ($user) {

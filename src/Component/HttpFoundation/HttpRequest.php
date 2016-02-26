@@ -1,15 +1,19 @@
 <?php
 namespace bblue\ruby\Component\HttpFoundation;
 
-use bblue\ruby\Components\Validation;
 use bblue\ruby\Component\Core\AbstractRequest;
+use bblue\ruby\Component\Core\iInternalRequest;
+use bblue\ruby\Component\Core\tExceptionAwareRequest;
+use bblue\ruby\Components\Validation;
 
-final class HttpRequest extends AbstractRequest
+final class HttpRequest extends AbstractRequest implements iInternalRequest
 {
 	private $sUrl;
 	private $aUrlParams;
 	private $sCommand;
 	public $targetUrl;
+
+	use tExceptionAwareRequest;
 
 	public function getClientAddress()
 	{

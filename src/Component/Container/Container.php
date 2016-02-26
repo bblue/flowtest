@@ -8,6 +8,7 @@ use bblue\ruby\Component\Config\ConfigInterface;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
 use bblue\ruby\Component\Logger\iLoggable;
 use bblue\ruby\Component\Logger\tLoggerHelper;
+use bblue\ruby\Component\Triad\iRubyModel;
 use bblue\ruby\Traits\StringHelper;
 use Exception;
 use Psr\Log\LoggerAwareInterface;
@@ -18,7 +19,7 @@ use ReflectionClass;
  * Class Container
  * @todo Consider creating helper classes for 1) DI, 2) autowiring, 4) Search, 5) other...?
  */
-final class Container implements ConfigAwareInterface, iLoggable
+final class Container implements ConfigAwareInterface, iLoggable, iRubyModel
 {
     use tLoggerHelper;
     use ConfigAwareTrait;
@@ -259,7 +260,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         // Get the definition object
         $definition = $this->getAsDefinition($var);
         // Build the callable array
-        $definition->addLoadingCallback($this->makeCallableArray($callable), $parameters);
+        $definition->addConstructorCallback($this->makeCallableArray($callable), $parameters);
         return $this;
     }
 
@@ -460,7 +461,8 @@ final class Container implements ConfigAwareInterface, iLoggable
         }
         $alias = ltrim($string, '@');
         if (!$this->isAlias($alias)) {
-            throw new Exception('The magic string does not match any aliases');
+            throw new Exception('The magic string ('.(is_string($alias) ? $alias : 'UNDEFINED').') does not match any
+            aliases');
         }
         $reference = $this->getReferenceByAlias($alias);
         return $reference;
@@ -572,7 +574,7 @@ final class Container implements ConfigAwareInterface, iLoggable
         foreach ($this->referenceObjects as $reference) {
             // Test if the reference has a fqcn equal to $fqcn
             if ($reference->hasFqcn($fqcn)) {
-                // Exit loop by returning the reference
+                // Exit
                 return true;
             }
         }
@@ -598,7 +600,7 @@ final class Container implements ConfigAwareInterface, iLoggable
             }
         }
         // If we end up here no match was found
-        throw new Exception('No reference object with this fqcn');
+        throw new Exception('No reference object with this fqcn ('.$fqcn.')');
     }
 
     /**

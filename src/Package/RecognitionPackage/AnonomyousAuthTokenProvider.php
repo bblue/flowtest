@@ -4,6 +4,7 @@ namespace bblue\ruby\Package\RecognitionPackage;
 use bblue\ruby\Component\Core\AbstractRequest;
 use bblue\ruby\Component\Core\iUserProvider;
 use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Request\iInternalRequest;
 use bblue\ruby\Component\Security\aAuthTokenProvider;
 use bblue\ruby\Component\Security\AuthTokenFactory;
 use bblue\ruby\Entities\Guest;
@@ -21,7 +22,7 @@ final class AnonomyousAuthTokenProvider extends aAuthTokenProvider implements Lo
 
     /**
      * The request object
-     * @var AbstractRequest
+     * @var iInternalRequest
      */
     private $request;
     
@@ -34,8 +35,10 @@ final class AnonomyousAuthTokenProvider extends aAuthTokenProvider implements Lo
     /**
      * Constructor does no more than assign parameters
      * @param authTokenFactory $authTokenFactory
+     * @param iInternalRequest $request
+     * @param iUserProvider    $userProvider
      */
-    public function __construct(AuthTokenFactory $authTokenFactory, AbstractRequest $request, iUserProvider $userProvider)
+    public function __construct(AuthTokenFactory $authTokenFactory, iInternalRequest $request, iUserProvider $userProvider)
     {
         $this->authTokenFactory = $authTokenFactory;
         $this->request = $request;

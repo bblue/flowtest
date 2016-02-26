@@ -71,7 +71,7 @@ final class Validation {
 
 			switch($opt['type']){
 				default:
-					throw new Exception('Validation type ' . $opt['type'] . ' does not exist');
+					throw new \Exception('Validation type ' . $opt['type'] . ' does not exist');
 					break;
 				case 'email':
 					$this->validateEmail($var, $opt['required'], $opt['regex']);

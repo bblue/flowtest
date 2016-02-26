@@ -2,10 +2,11 @@
 
 namespace bblue\ruby\Package\DatabasePackage;
 
-use Doctrine\DBAL\Logging\SQLLogger;
+use bblue\ruby\Component\Core\iAdapterImplementation;
 use bblue\ruby\Component\Logger\Psr3LoggerHandler;
+use Doctrine\DBAL\Logging\SQLLogger;
 
-final class DoctrineLogger implements SQLLogger
+final class DoctrineLogger implements SQLLogger, iAdapterImplementation
 {
     private $handler;
     

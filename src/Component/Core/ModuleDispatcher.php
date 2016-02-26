@@ -26,16 +26,16 @@ final class ModuleDispatcher implements ContainerAwareInterface, EventDispatcher
 	public function dispatch(Route $route)
 	{
 	    // Get the controller
-		if(!$this->container->has($route->getControllerName())) {
+		if(!$this->container->has($route->getControllerCN())) {
 		    throw new \RuntimeException('Controller for route does not exist');
 		}
-		$controller = $this->container->get($route->getControllerName());
+		$controller = $this->container->get($route->getControllerCN());
 		$this->eventDispatcher->dispatch(DispatcherEvent::CONTROLLER_LOADED, ['controller' => $controller]);
 
 		$this->logger->info('Dispatching to "' . $route->getUrl() . '/"');
 		
 		// Execute command on controller
-		$sAction = $route->getControllerAction();
+		$sAction = $route->getCommand();
 		$response = $controller->$sAction();
 		
 		if($response instanceof Response) {
@@ -52,7 +52,7 @@ final class ModuleDispatcher implements ContainerAwareInterface, EventDispatcher
 		}
 		
 		// Get the view
-		$view = $this->container->get($route->getViewName());
+		$view = $this->container->get($route->getViewCN());
 		$this->eventDispatcher->dispatch(DispatcherEvent::VIEW_LOADED, ['view' => $view]);
 
 		// Do action on view

@@ -1,8 +1,8 @@
 <?php
 
-namespace bblue\ruby\Component\Core;
+namespace bblue\ruby\Component\Request;
 
-abstract class AbstractRequest
+abstract class AbstractRequest implements iRequest
 {   
     private $aGetArray = array();
     private $aPostArray = array();
@@ -24,7 +24,7 @@ abstract class AbstractRequest
     }
     
     /**
-     * @todo Gjøre denne CLI-vennlig
+     * @todo Gjï¿½re denne CLI-vennlig
      */
     public function getTargetUrl()
     {

@@ -7,6 +7,7 @@ use bblue\ruby\Component\EventDispatcher\EventDispatcher;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareInterface;
 use bblue\ruby\Component\EventDispatcher\EventDispatcherAwareTrait;
 use bblue\ruby\Component\Logger\tLoggerAware;
+use bblue\ruby\Component\Request\iInternalRequest;
 use bblue\ruby\Entities\User;
 use Psr\Log\LoggerAwareInterface;
 
@@ -36,16 +37,17 @@ final class Auth implements EventDispatcherAwareInterface, LoggerAwareInterface
 
     /**
      * The request made to the site
-     * @var Request
+     * @var iInternalRequest
      */
     private $request;
 
     /**
-     * @param iUserProvider $userProvider
-     * @param iAuthStorage $storage
-     * @param EventDispatcher $ed
+     * @param iAuthStorage     $storage
+     * @param iInternalRequest $request
+     * @param EventDispatcher  $ed
+     * @internal param iUserProvider $userProvider
      */
-    public function __construct(iAuthStorage $storage, Request $request, EventDispatcher $ed)
+    public function __construct(iAuthStorage $storage, iInternalRequest $request, EventDispatcher $ed)
     {
         $this->storage  = $storage;
         $this->setEventDispatcher($ed);
